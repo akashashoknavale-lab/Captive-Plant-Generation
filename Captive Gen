@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Solar Dashboard</title>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body { font-family: Arial, sans-serif; background: #f4f4f4; margin:0; }
+header { background:#1f4fa3; color:white; padding:12px; text-align:center; font-size:22px; }
+
+.controls { display: flex; gap:12px; padding:10px; background: #fff; box-shadow:0 1px 5px rgba(0,0,0,0.1); }
+select { width:200px; height:140px; }
+button { padding:6px 10px; cursor:pointer; margin-top:5px; }
+
+.kpis { display: grid; grid-template-columns: repeat(4,1fr); gap:10px; padding:10px; }
+.kpi { background:#fff; padding:12px; border-radius:6px; text-align:center; box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+.kpi h3 { margin:8px 0 0; font-size:14px; color:#555;}
+.kpi p { font-size:20px; font-weight:bold; margin:4px 0; }
+
+.chart-row { display: flex; gap:12px; padding:10px; }
+.chart-box { background:#fff; padding:10px; border-radius:6px; flex:1; }
+
+table { width:100%; border-collapse:collapse; margin-top:10px; }
+th, td { border:1px solid #ccc; padding:6px; font-size:13px; text-align:center; }
+th { background:#e8e8e8; }
+</style>
+</head>
+<body>
+
+<header>SOLAR PLANTS GENERATION DASHBOARD</header>
+
+<div class="controls">
+    <div>
+        <b>Plants</b><br>
+        <button onclick="selectAll('plantSelect')">All</button>
+        <button onclick="deselectAll('plantSelect')">None</button><br>
+        <select id="plantSelect" multiple></select>
+    </div>
+    <div>
+        <b>Months</b><br>
+        <button onclick="selectAll('monthSelect')">All</button>
+        <button onclick="deselectAll('monthSelect')">None</button><br>
+        <select id="monthSelect" multiple></select>
+    </div>
+    <div style="align-self:flex-end">
+        <button onclick="applyFilter()">APPLY FILTER</button>
+    </div>
+</div>
+
+<div class="kpis">
+    <div class="kpi"><h3>Total Generation (kWh)</h3><p id="totalGen">0</p></div>
+    <div class="kpi"><h3>Total Expected (kWh)</h3><p id="totalExp">0</p></div>
+    <div class="kpi"><h3>Avg PR %</h3><p id="avgPR">0</p></div>
+    <div class="kpi"><h3>Avg CUF %</h3><p id="avgCUF">0</p></div>
+</div>
+
+<div class="chart-row">
+    <div class="chart-box"><canvas id="genChart"></canvas></div>
+    <div class="chart-box"><canvas id="cufChart"></canvas></div>
+</div>
+
+<div class="chart-row">
+    <div class="chart-box" style="flex:1.5">
+        <h3>Summary Table</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th>Generation</th>
+                    <th>Expected</th>
+                    <th>Avg PR</th>
+                    <th>Avg CUF</th>
+                </tr>
+            </thead>
+            <tbody id="summaryTable"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+// ===== GOOGLE SHEET DATA SOURCE =====
+const SHEET_ID = "1Y3cr91xEEQj86B9hXMYdpp6UU1a33-vlrFcWKkLRujg";
+const SHEET_NAME = "Sheet1";  
+
+// Fetch via opensheet.elk.sh
+const DATA_URL = `https://opensheet.elk.sh/${SHEET_ID}/${SHEET_NAME}`;
+
+let allData = [];
+let genChart, cufChart;
+
+// LOAD SHEET
+fetch(DATA_URL)
+.then(res => res.json())
+.then(json => {
+    allData = json;
+    populateFilters();
+    applyFilter();
+});
+
+function populateFilters(){
+    const plants = [...new Set(allData.map(r => r["Site Name"]))];
+    const months = [...new Set(allData.map(r => r["Month"]))];
+
+    plants.forEach(p => plantSelect.add(new Option(p,p,true,true));
+    months.forEach(m => monthSelect.add(new Option(m,m,true,true));
+}
+
+function selectAll(id){
+    [...document.getElementById(id).options].forEach(o => o.selected = true);
+}
+function deselectAll(id){
+    [...document.getElementById(id).options].forEach(o => o.selected = false);
+}
+
+function applyFilter(){
+    const selectedPlants = [...plantSelect.selectedOptions].map(o=>o.value);
+    const selectedMonths = [...monthSelect.selectedOptions].map(o=>o.value);
+
+    const filtered = allData.filter(r =>
+        selectedPlants.includes(r["Site Name"]) &&
+        selectedMonths.includes(r["Month"])
+    );
+
+    updateKPIs(filtered);
+    drawCharts(filtered);
+    fillTable(filtered);
+}
+
+function sumField(data, field){
+    return data.reduce((a,b) => a + (parseFloat(b[field])||0), 0);
+}
+function avgField(data, field){
+    return data.length ? (sumField(data,field)/data.length) : 0;
+}
+
+// ===== UPDATE KPI CARDS =====
+function updateKPIs(data){
+    totalGen.innerText = sumField(data,"Actual Gen").toLocaleString();
+    totalExp.innerText = sumField(data,"Expected Gen").toLocaleString();
+    avgPR.innerText = avgField(data,"PR").toFixed(2);
+    avgCUF.innerText = avgField(data,"CUF").toFixed(2);
+}
+
+// ===== CHARTS =====
+function drawCharts(data){
+    const byMonth = {};
+    data.forEach(r => {
+        byMonth[r.Month] = byMonth[r.Month] || {gen:0, cuf:0, count:0};
+        byMonth[r.Month].gen += parseFloat(r["Actual Gen"])||0;
+        byMonth[r.Month].cuf += parseFloat(r["CUF"])||0;
+        byMonth[r.Month].count++;
+    });
+
+    const labels = Object.keys(byMonth);
+    const genData = labels.map(m => byMonth[m].gen);
+    const cufData = labels.map(m => byMonth[m].count ? byMonth[m].cuf/byMonth[m].count : 0);
+
+    genChart?.destroy();
+    genChart = new Chart(document.getElementById("genChart"), {
+        type:"bar",
+        data:{ labels, datasets:[{ label:"Total Gen", data:genData, backgroundColor:"#1f77b4" }] }
+    });
+
+    cufChart?.destroy();
+    cufChart = new Chart(document.getElementById("cufChart"), {
+        type:"pie",
+        data:{ labels, datasets:[{ data:cufData, backgroundColor:["#ff7f0e","#2ca02c","#d62728","#9467bd"] }] }
+    });
+}
+
+// ===== TABLE =====
+function fillTable(data){
+    summaryTable.innerHTML="";
+    const grp = {};
+
+    data.forEach(r => {
+        grp[r.Month] = grp[r.Month] || {gen:0,exp:0,prSum:0,cufSum:0,count:0};
+        grp[r.Month].gen += parseFloat(r["Actual Gen"])||0;
+        grp[r.Month].exp += parseFloat(r["Expected Gen"])||0;
+        grp[r.Month].prSum += parseFloat(r["PR"])||0;
+        grp[r.Month].cufSum += parseFloat(r["CUF"])||0;
+        grp[r.Month].count++;
+    });
+
+    Object.keys(grp).forEach(m => {
+        let g = grp[m];
+        summaryTable.innerHTML += `
+        <tr>
+            <td>${m}</td>
+            <td>${g.gen.toLocaleString()}</td>
+            <td>${g.exp.toLocaleString()}</td>
+            <td>${(g.prSum/g.count).toFixed(2)}</td>
+            <td>${(g.cufSum/g.count).toFixed(2)}</td>
+        </tr>`;
+    });
+}
+</script>
+
+</body>
+</html>
