@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Solar Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<h2>Day Generation: <span id="dayGen">--</span></h2>
+<h3>Yesterday Generation: <span id="yDayGen">--</span></h3>
+
+<canvas id="dailyChart" height="120"></canvas>
+
+<script>
+const SHEET_ID = "1Y3cr91xEEQj86B9hXMYdpp6UU1a33-vlrFcWKkLRujg";
+const SHEET_GID = "0";
+
+const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
+
+fetch(CSV_URL)
+.then(res => res.text())
+.then(csv => {
+
+  const rows = csv.split("\n").map(r => r.split(","));
+
+  const today = new Date();
+  const day = today.getDate();        // 1–31
+  const month = today.getMonth();     // 0–11
+  const row = month + 1;              // CSV index (row2 = Jan)
+
+  const DC = parseFloat(rows[row][2]);   // Column C
+
+  const GEN_START = 20;  // Column U (0-based)
+  const IRR_START = 52;  // Column BA
+
+  const dayGen = parseFloat(rows[row][GEN_START + day - 1]) || 0;
+  const yDayGen = parseFloat(rows[row][GEN_START + day - 2]) || 0;
+
+  document.getElementById("dayGen").innerText = dayGen.toFixed(2) + " MWh";
+  document.getElementById("yDayGen").innerText = yDayGen.toFixed(2) + " MWh";
+
+  let labels = [], gen = [], pr = [];
+
+  for (let i = 0; i < 31; i++) {
+    let g = parseFloat(rows[row][GEN_START + i]);
+    let irr = parseFloat(rows[row][IRR_START + i]);
+
+    if (!isNaN(g)) {
+      labels.push(i + 1);
+      gen.push(g);
+      pr.push(irr ? ((g / (irr * DC)) * 100).toFixed(2) : 0);
+    }
+  }
+
+  new Chart(document.getElementById("dailyChart"),{
+    data:{
+      labels:labels,
+      datasets:[
+        {
+          type:'bar',
+          label:'Day Gen (MWh)',
+          data:gen,
+          backgroundColor:'#4472c4'
+        },
+        {
+          type:'line',
+          label:'PR %',
+          data:pr,
+          borderColor:'#ed7d31',
+          yAxisID:'y1'
+        }
+      ]
+    },
+    options:{
+      scales:{
+        y:{ title:{display:true,text:'MWh'} },
+        y1:{
+          position:'right',
+          grid:{drawOnChartArea:false},
+          title:{display:true,text:'PR %'}
+        }
+      }
+    }
+  });
+
+});
+</script>
+
+</body>
+</html>
