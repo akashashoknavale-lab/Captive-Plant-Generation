@@ -1,88 +1,188 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Solar Dashboard</title>
+<title>Shree Hari Fertilizers – Solar Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+    font-family: Calibri, Arial, sans-serif;
+    background:#f4f4f4;
+    margin:0;
+    padding:12px;
+}
+h1{
+    text-align:center;
+    margin:5px 0 15px;
+}
+.top-grid{
+    display:grid;
+    grid-template-columns: repeat(6,1fr);
+    gap:8px;
+}
+.card{
+    background:#f8cbad;
+    padding:10px;
+    text-align:center;
+    font-weight:600;
+    border-radius:4px;
+}
+.green{
+    background:#b7d99c;
+}
+.value{
+    font-size:20px;
+    margin-top:4px;
+}
+.section{
+    display:grid;
+    grid-template-columns: 1.3fr 2.7fr;
+    gap:12px;
+    margin-top:12px;
+}
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:#fff;
+}
+th,td{
+    border:1px solid #cfcfcf;
+    padding:6px;
+    text-align:center;
+    font-size:14px;
+}
+th{
+    background:#eeeeee;
+}
+.chart-box{
+    background:#fff;
+    padding:10px;
+    border-radius:4px;
+}
+</style>
 </head>
 
 <body>
 
-<h2>Day Generation: <span id="dayGen">--</span></h2>
-<h3>Yesterday Generation: <span id="yDayGen">--</span></h3>
+<h1>Shree Hari Fertilizers</h1>
 
-<canvas id="dailyChart" height="120"></canvas>
+<!-- TOP SUMMARY -->
+<div class="top-grid">
+    <div class="card">DC Capacity<div class="value" id="dcCap">--</div></div>
+    <div class="card">AC Capacity<div class="value">1200 kW</div></div>
+    <div class="card">Day Gen<div class="value" id="dayGen">--</div></div>
+    <div class="card">Yesterday Gen<div class="value" id="yDayGen">--</div></div>
+    <div class="card">Month Gen<div class="value">150.56 MWh</div></div>
+    <div class="card">Year Gen<div class="value">1800.77 MWh</div></div>
+
+    <div class="card green">Total Carbon Saving<div class="value">4653 Kton</div></div>
+    <div class="card green">Total Savings<div class="value">$ 48,579.87</div></div>
+    <div class="card">Day PR<div class="value" id="dayPR">--</div></div>
+    <div class="card">Month PR<div class="value">87.98%</div></div>
+</div>
+
+<!-- MIDDLE -->
+<div class="section">
+
+<!-- MONTH TABLE -->
+<table>
+<thead>
+<tr><th>Month</th><th>Gen</th><th>PR</th></tr>
+</thead>
+<tbody>
+<tr><td>Apr-25</td><td>156.8</td><td>74.67%</td></tr>
+<tr><td>May-25</td><td>146.7</td><td>69.86%</td></tr>
+<tr><td>Jun-25</td><td>150.7</td><td>71.76%</td></tr>
+<tr><td>Jul-25</td><td>156.4</td><td>74.48%</td></tr>
+<tr><td>Aug-25</td><td>153.35</td><td>73.02%</td></tr>
+<tr><td>Sep-25</td><td>153.63</td><td>73.16%</td></tr>
+<tr><td>Oct-25</td><td>153.91</td><td>73.29%</td></tr>
+<tr><td>Nov-25</td><td>154.19</td><td>73.42%</td></tr>
+<tr><td>Dec-25</td><td>154.47</td><td>73.56%</td></tr>
+<tr><td>Jan-26</td><td>154.75</td><td>73.69%</td></tr>
+<tr><td>Feb-26</td><td>155.03</td><td>73.82%</td></tr>
+<tr><td>Mar-26</td><td>155.31</td><td>73.96%</td></tr>
+</tbody>
+</table>
+
+<!-- DAILY CHART -->
+<div class="chart-box">
+<h3 style="text-align:center">Generation MWh and PR %</h3>
+<canvas id="dailyChart"></canvas>
+</div>
+
+</div>
+
+<!-- MONTHLY CHART -->
+<div class="chart-box" style="margin-top:12px;">
+<canvas id="monthlyChart"></canvas>
+</div>
 
 <script>
 const SHEET_ID = "1Y3cr91xEEQj86B9hXMYdpp6UU1a33-vlrFcWKkLRujg";
 const SHEET_GID = "0";
-
 const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
 
 fetch(CSV_URL)
-.then(res => res.text())
-.then(csv => {
-
-  const rows = csv.split("\n").map(r => r.split(","));
-
+.then(r=>r.text())
+.then(csv=>{
+  const rows = csv.split("\n").map(r=>r.split(","));
   const today = new Date();
-  const day = today.getDate();        // 1–31
-  const month = today.getMonth();     // 0–11
-  const row = month + 1;              // CSV index (row2 = Jan)
+  const d = today.getDate();
+  const m = today.getMonth();
+  const row = m + 1;
 
-  const DC = parseFloat(rows[row][2]);   // Column C
+  const DC = parseFloat(rows[row][2]);
+  document.getElementById("dcCap").innerText = DC + " kWp";
 
-  const GEN_START = 20;  // Column U (0-based)
-  const IRR_START = 52;  // Column BA
+  const GEN_START = 20;
+  const IRR_START = 52;
 
-  const dayGen = parseFloat(rows[row][GEN_START + day - 1]) || 0;
-  const yDayGen = parseFloat(rows[row][GEN_START + day - 2]) || 0;
+  const dayGen = parseFloat(rows[row][GEN_START + d - 1]) || 0;
+  const yDayGen = parseFloat(rows[row][GEN_START + d - 2]) || 0;
+  const irr = parseFloat(rows[row][IRR_START + d - 1]) || 0;
 
-  document.getElementById("dayGen").innerText = dayGen.toFixed(2) + " MWh";
-  document.getElementById("yDayGen").innerText = yDayGen.toFixed(2) + " MWh";
+  const dayPR = irr ? ((dayGen/(irr*DC))*100) : 0;
 
-  let labels = [], gen = [], pr = [];
+  document.getElementById("dayGen").innerText = dayGen.toFixed(2)+" MWh";
+  document.getElementById("yDayGen").innerText = yDayGen.toFixed(2)+" MWh";
+  document.getElementById("dayPR").innerText = dayPR.toFixed(2)+" %";
 
-  for (let i = 0; i < 31; i++) {
-    let g = parseFloat(rows[row][GEN_START + i]);
-    let irr = parseFloat(rows[row][IRR_START + i]);
-
-    if (!isNaN(g)) {
-      labels.push(i + 1);
+  let labels=[], gen=[], pr=[];
+  for(let i=0;i<31;i++){
+    let g = parseFloat(rows[row][GEN_START+i]);
+    let ir = parseFloat(rows[row][IRR_START+i]);
+    if(!isNaN(g)){
+      labels.push(i+1);
       gen.push(g);
-      pr.push(irr ? ((g / (irr * DC)) * 100).toFixed(2) : 0);
+      pr.push(ir ? ((g/(ir*DC))*100).toFixed(2) : 0);
     }
   }
 
-  new Chart(document.getElementById("dailyChart"),{
+  new Chart(dailyChart,{
     data:{
-      labels:labels,
+      labels,
       datasets:[
-        {
-          type:'bar',
-          label:'Day Gen (MWh)',
-          data:gen,
-          backgroundColor:'#4472c4'
-        },
-        {
-          type:'line',
-          label:'PR %',
-          data:pr,
-          borderColor:'#ed7d31',
-          yAxisID:'y1'
-        }
+        {type:'bar',label:'Gen',data:gen,backgroundColor:'#4472c4'},
+        {type:'line',label:'PR %',data:pr,borderColor:'#ed7d31',yAxisID:'y1'}
       ]
     },
-    options:{
-      scales:{
-        y:{ title:{display:true,text:'MWh'} },
-        y1:{
-          position:'right',
-          grid:{drawOnChartArea:false},
-          title:{display:true,text:'PR %'}
-        }
-      }
-    }
+    options:{scales:{y1:{position:'right',grid:{drawOnChartArea:false}}}}
+  });
+
+  new Chart(monthlyChart,{
+    type:'bar',
+    data:{
+      labels:["Apr-25","May-25","Jun-25","Jul-25","Aug-25","Sep-25","Oct-25","Nov-25","Dec-25","Jan-26","Feb-26","Mar-26"],
+      datasets:[
+        {label:'Gen',data:[156.8,146.7,150.7,156.4,153.35,153.63,153.91,154.19,154.47,154.75,155.03,155.31],backgroundColor:'#4472c4'},
+        {type:'line',label:'PR',data:[74.67,69.86,71.76,74.48,73.02,73.16,73.29,73.42,73.56,73.69,73.82,73.96],borderColor:'#ed7d31',yAxisID:'y1'}
+      ]
+    },
+    options:{scales:{y1:{position:'right',grid:{drawOnChartArea:false}}}}
   });
 
 });
