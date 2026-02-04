@@ -48,8 +48,9 @@ fetch(CSV_URL)
   const today = new Date();
   const day = today.getDate();
 
-  const currentMonth = today.toLocaleString('en-US',{month:'short',year:'2-digit'});
-
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const currentMonth =
+    months[today.getMonth()] + "-" + today.getFullYear().toString().slice(-2);
   let monthRow = -1;
   rows.forEach((r,i)=>{
     if(r[1] && r[1].includes(currentMonth)) monthRow = i;
