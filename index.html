@@ -8,7 +8,29 @@
 <style>
 body{font-family:Arial;background:#f2f2f2;padding:20px;}
 .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;}
-.box{background:#f6c9a7;padding:12px;text-align:center;border-radius:6px;}
+  .box{
+    padding:16px;
+    text-align:center;
+    border-radius:14px;
+    color:#fff;
+    font-weight:600;
+    box-shadow:0 6px 16px rgba(0,0,0,0.15);
+    transition:transform 0.25s, box-shadow 0.25s;
+  }
+  
+  .box:hover{
+    transform:translateY(-6px);
+    box-shadow:0 10px 22px rgba(0,0,0,0.25);
+  }
+  
+  /* Individual colors */
+  .box:nth-child(1){ background:linear-gradient(135deg,#ff9a9e,#fad0c4);}
+  .box:nth-child(2){ background:linear-gradient(135deg,#a18cd1,#fbc2eb);}
+  .box:nth-child(3){ background:linear-gradient(135deg,#f6d365,#fda085);}
+  .box:nth-child(4){ background:linear-gradient(135deg,#84fab0,#8fd3f4);}
+  .box:nth-child(5){ background:linear-gradient(135deg,#ffecd2,#fcb69f); color:#333;}
+  .box:nth-child(6){ background:linear-gradient(135deg,#a1c4fd,#c2e9fb);}
+
 canvas{background:#fff;padding:10px;border-radius:8px;}
 .main-layout{
   display:flex;
