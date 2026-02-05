@@ -74,32 +74,29 @@ canvas{background:#fff;padding:10px;border-radius:8px;}
 
 <h2 style="text-align:center;">Shree Hari Fertilizers</h2>
 
-<div class="main-layout">
+            <!-- ===== ROW 1 : CARDS ===== -->
+            <div class="cards-row">
+              <div class="box">Day Gen<br><b id="dayGen">--</b></div>
+              <div class="box">Yesterday Gen<br><b id="yGen">--</b></div>
+              <div class="box">Month Gen<br><b id="monthGen">--</b></div>
+              <div class="box">Year Gen<br><b id="yearGen">--</b></div>
+              <div class="box">Day PR<br><b id="dayPR">--</b></div>
+              <div class="box">Month PR<br><b id="monthPR">--</b></div>
+            </div>
+            
+            <br>
+            
+            <!-- ===== ROW 2 : GRAPHS ===== -->
+            <div class="graphs-row">
+              <div class="chart-box">
+                <canvas id="dailyChart"></canvas>
+              </div>
+            
+              <div class="chart-box">
+                <canvas id="monthlyChart"></canvas>
+              </div>
+            </div>
 
-  <!-- LEFT SIDE : DATA BOXES -->
-  <div class="left-panel">
-    <div class="grid">
-      <div class="box">Day Gen<br><b id="dayGen">--</b></div>
-      <div class="box">Yesterday Gen<br><b id="yGen">--</b></div>
-      <div class="box">Month Gen<br><b id="monthGen">--</b></div>
-      <div class="box">Year Gen<br><b id="yearGen">--</b></div>
-      <div class="box">Day PR<br><b id="dayPR">--</b></div>
-      <div class="box">Month PR<br><b id="monthPR">--</b></div>
-    </div>
-  </div>
-
-  <!-- RIGHT SIDE : GRAPHS -->
-  <div class="right-panel">
-    <div class="chart-box">
-      <canvas id="dailyChart"></canvas>
-    </div>
-
-    <div class="chart-box">
-      <canvas id="monthlyChart"></canvas>
-    </div>
-  </div>
-
-</div>
 
 
 <br><br>
