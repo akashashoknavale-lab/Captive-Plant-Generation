@@ -115,12 +115,15 @@ canvas{background:#fff;padding:10px;border-radius:8px;}
 
 
 
-<br><br>
-<canvas id="dailyChart"></canvas>
-<br><br>
-<canvas id="monthlyChart"></canvas>
-
 <script>
+
+function getCurrentFY(){
+  const t = new Date();
+  return (t.getMonth() >= 3) ? t.getFullYear() : t.getFullYear() - 1;
+}
+
+
+  
 const sheetURL =
 "https://docs.google.com/spreadsheets/d/1Y3cr91xEEQj86B9hXMYdpp6UU1a33-vlrFcWKkLRujg/export?format=csv&gid=861206775";
 
@@ -155,6 +158,7 @@ fetch(sheetURL)
 
 function initFYDropdown(){
   let fySet=new Set();
+
   rows.forEach(r=>{
     let d=parseDDMMYY(r["Date"]);
     if(!d) return;
@@ -163,13 +167,19 @@ function initFYDropdown(){
   });
 
   const sel=document.getElementById("fySelect");
+  sel.innerHTML="";
+
+  const currentFY = getCurrentFY();   // ⭐ important
+
   [...fySet].sort().reverse().forEach(y=>{
     let o=document.createElement("option");
     o.value=y;
     o.text=`${y}-${String(y+1).slice(2)}`;
+    if(y === currentFY) o.selected = true; // ⭐ auto select
     sel.appendChild(o);
   });
 }
+
 
 function renderCharts(){
   const fy=parseInt(document.getElementById("fySelect").value);
