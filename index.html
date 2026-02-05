@@ -84,7 +84,12 @@ canvas{background:#fff;padding:10px;border-radius:8px;}
 <body>
 
 <h2 style="text-align:center;">Shree Hari Fertilizers</h2>
-
+    <div style="margin:15px 0; text-align:right;">
+      <label style="font-weight:600;">Financial Year: </label>
+      <select id="fySelect" onchange="renderCharts()" style="padding:6px 10px;border-radius:8px;">
+      </select>
+    </div>
+  
             <!-- ===== ROW 1 : CARDS ===== -->
             <div class="cards-row">
               <div class="box">Day Gen<br><b id="dayGen">--</b></div>
@@ -119,30 +124,23 @@ canvas{background:#fff;padding:10px;border-radius:8px;}
 const sheetURL =
 "https://docs.google.com/spreadsheets/d/1Y3cr91xEEQj86B9hXMYdpp6UU1a33-vlrFcWKkLRujg/export?format=csv&gid=861206775";
 
-function parseDDMMYY(dateStr){
-  if(!dateStr) return null;
-  let p = dateStr.split("-");
-  if(p.length !== 3) return null;
+let rows = [];
+let dailyChartRef, monthlyChartRef;
 
-  let dd = parseInt(p[0],10);
-  let mm = parseInt(p[1],10) - 1;
-  let yy = parseInt(p[2],10);
-  if(yy < 100) yy = 2000 + yy;
-
-  return new Date(yy, mm, dd);
+function parseDDMMYY(str){
+  if(!str) return null;
+  let p=str.split("-");
+  let d=+p[0], m=+p[1]-1, y=+p[2];
+  if(y<100) y=2000+y;
+  return new Date(y,m,d);
 }
 
-function key(d){
-  return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();
-}
-
-function parseCSV(text){
-  const lines = text.trim().split("\n");
-  const headers = lines.shift().split(",").map(h=>h.trim());
-  return lines.map(l=>{
-    const v = l.split(",");
-    let o={};
-    headers.forEach((h,i)=>o[h]=v[i]?v[i].trim():"");
+function parseCSV(t){
+  const l=t.trim().split("\n");
+  const h=l.shift().split(",");
+  return l.map(r=>{
+    let v=r.split(","), o={};
+    h.forEach((k,i)=>o[k.trim()]=v[i]?.trim());
     return o;
   });
 }
@@ -150,107 +148,87 @@ function parseCSV(text){
 fetch(sheetURL)
 .then(r=>r.text())
 .then(csv=>{
+  rows=parseCSV(csv);
+  initFYDropdown();
+  renderCharts();
+});
 
-  const rows = parseCSV(csv);
+function initFYDropdown(){
+  let fySet=new Set();
+  rows.forEach(r=>{
+    let d=parseDDMMYY(r["Date"]);
+    if(!d) return;
+    let fy = d.getMonth()>=3 ? d.getFullYear() : d.getFullYear()-1;
+    fySet.add(fy);
+  });
 
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate()-1);
+  const sel=document.getElementById("fySelect");
+  [...fySet].sort().reverse().forEach(y=>{
+    let o=document.createElement("option");
+    o.value=y;
+    o.text=`${y}-${String(y+1).slice(2)}`;
+    sel.appendChild(o);
+  });
+}
 
-  const todayKey = key(today);
-  const yesterdayKey = key(yesterday);
-
-  let dayGen=0, yGen=0, dayPR=0;
-  let monthGen=0, yearGen=0, prSum=0, prCount=0;
+function renderCharts(){
+  const fy=parseInt(document.getElementById("fySelect").value);
+  const today=new Date();
 
   let dailyLabels=[], dailyData=[];
-  let monthMap={};
+  let monthMap={ Apr:0,May:0,Jun:0,Jul:0,Aug:0,Sep:0,Oct:0,Nov:0,Dec:0,Jan:0,Feb:0,Mar:0 };
 
   rows.forEach(r=>{
-    const d = parseDDMMYY(r["Date"]);
+    let d=parseDDMMYY(r["Date"]);
     if(!d) return;
+    let gen=parseFloat(r["Day Gen"])||0;
 
-    const gen = parseFloat(r["Day Gen"]) || 0;
-    const pr  = parseFloat(r["PR"]) || 0;
-
-    if(key(d) === todayKey){
-      dayGen = gen;
-      dayPR = pr;
-    }
-
-    if(key(d) === yesterdayKey){
-      yGen = gen;
-    }
-
-    if(d.getMonth()===today.getMonth() &&
-       d.getFullYear()===today.getFullYear()){
-      monthGen += gen;
-      prSum += pr;
-      prCount++;
+    // DAILY → only current month
+    if(d.getMonth()===today.getMonth() && d.getFullYear()===today.getFullYear()){
       dailyLabels.push(d.getDate());
       dailyData.push(gen);
     }
 
-    if(d.getFullYear()===today.getFullYear()){
-      yearGen += gen;
+    // MONTHLY → FY
+    let fyYear = d.getMonth()>=3 ? d.getFullYear() : d.getFullYear()-1;
+    if(fyYear===fy){
+      const m=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()];
+      monthMap[m]+=gen;
     }
-
-    let mKey = d.getFullYear()+"-"+(d.getMonth()+1);
-    monthMap[mKey]=(monthMap[mKey]||0)+gen;
   });
 
-  document.getElementById("dayGen").innerText = dayGen.toFixed(2)+" MWh";
-  document.getElementById("yGen").innerText   = yGen.toFixed(2)+" MWh";
-  document.getElementById("monthGen").innerText = monthGen.toFixed(2)+" MWh";
-  document.getElementById("yearGen").innerText  = yearGen.toFixed(2)+" MWh";
-  document.getElementById("dayPR").innerText = dayPR.toFixed(2)+" %";
-  document.getElementById("monthPR").innerText =
-    prCount ? (prSum/prCount).toFixed(2)+" %" : "0 %";
+  if(dailyChartRef) dailyChartRef.destroy();
+  if(monthlyChartRef) monthlyChartRef.destroy();
 
-new Chart(dailyChart,{
-  type:'bar',
-  data:{
-    labels:dailyLabels,
-    datasets:[{
-      label:'Daily Generation (MWh)',
+  dailyChartRef=new Chart(dailyChart,{
+    type:'bar',
+    data:{labels:dailyLabels,datasets:[{
+      label:'Current Month Daily Gen',
       data:dailyData,
-      backgroundColor:[
-        '#ff9a9e','#fad0c4','#fbc2eb','#a1c4fd',
-        '#84fab0','#f6d365','#fda085'
-      ]
-    }]
-  },
-  options:{
-    responsive:true,
-    maintainAspectRatio:false,
-    plugins:{
-      legend:{labels:{font:{size:11}}}
+      backgroundColor:'#60a5fa'
+    }]},
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      scales:{x:{grid:{display:false}},y:{grid:{display:false}}}
     }
-  }
-});
+  });
 
-
-new Chart(monthlyChart,{
-  type:'bar',
-  data:{
-    labels:Object.keys(monthMap),
-    datasets:[{
-      label:'Monthly Generation (MWh)',
+  monthlyChartRef=new Chart(monthlyChart,{
+    type:'bar',
+    data:{labels:Object.keys(monthMap),datasets:[{
+      label:`FY ${fy}-${fy+1}`,
       data:Object.values(monthMap),
-      backgroundColor:'#4f46e5'
-    }]
-  },
-  options:{
-    responsive:true,
-    maintainAspectRatio:false,
-    plugins:{
-      legend:{labels:{font:{size:11}}}
+      backgroundColor:'#34d399'
+    }]},
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      scales:{x:{grid:{display:false}},y:{grid:{display:false}}}
     }
-  }
-});
-
-
-});
+  });
+}
 </script>
+
 </body>
 </html>
