@@ -6,30 +6,10 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body{
-  font-family: Arial;
-  background:#f2f2f2;
-  margin:20px;
-}
-.grid{
-  display:grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap:10px;
-}
-.box{
-  background:#f6c9a7;
-  padding:12px;
-  text-align:center;
-  border-radius:6px;
-}
-.green{
-  background:#b7d99c;
-}
-canvas{
-  background:#fff;
-  padding:10px;
-  border-radius:8px;
-}
+body{font-family:Arial;background:#f2f2f2;padding:20px;}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;}
+.box{background:#f6c9a7;padding:12px;text-align:center;border-radius:6px;}
+canvas{background:#fff;padding:10px;border-radius:8px;}
 </style>
 </head>
 
@@ -47,36 +27,34 @@ canvas{
 </div>
 
 <br><br>
-
 <canvas id="dailyChart"></canvas>
 <br><br>
 <canvas id="monthlyChart"></canvas>
 
 <script>
-// 👇 YOUR SHEET (ID + GID)
 const sheetURL =
 "https://docs.google.com/spreadsheets/d/1Y3cr91xEEQj86B9hXMYdpp6UU1a33-vlrFcWKkLRujg/export?format=csv&gid=861206775";
+
+// ✅ SAFE CSV PARSER
+function parseCSV(text){
+  const lines = text.trim().split("\n");
+  const headers = lines.shift().split(",").map(h=>h.trim());
+
+  return lines.map(l=>{
+    const values = l.split(",");
+    let obj = {};
+    headers.forEach((h,i)=>{
+      obj[h] = values[i] ? values[i].trim() : "";
+    });
+    return obj;
+  });
+}
 
 fetch(sheetURL)
 .then(res => res.text())
 .then(csv => {
 
-  const rows = csv.split("\n").slice(1);
-  let data = [];
-
-  rows.forEach(r=>{
-    let c = r.split(",");
-    if(c.length < 6) return;
-
-    data.push({
-      plant: c[0],
-      dc: parseFloat(c[1]),
-      ac: parseFloat(c[2]),
-      date: new Date(c[3]),
-      gen: parseFloat(c[4]),
-      pr: parseFloat(c[5])
-    });
-  });
+  const rows = parseCSV(csv);
 
   const today = new Date();
   const yesterday = new Date();
@@ -86,29 +64,39 @@ fetch(sheetURL)
   let monthGen=0, yearGen=0, prSum=0, prCount=0;
 
   let dailyLabels=[], dailyData=[];
+  let monthMap={};
 
-  data.forEach(d=>{
-    if(d.date.toDateString() === today.toDateString()){
-      dayGen = d.gen;
-      dayPR = d.pr;
+  rows.forEach(r=>{
+    if(!r["Date"] || !r["Day Gen"]) return;
+
+    const d = new Date(r["Date"]);
+    const gen = parseFloat(r["Day Gen"]) || 0;
+    const pr = parseFloat(r["PR"]) || 0;
+
+    if(d.toDateString()===today.toDateString()){
+      dayGen = gen;
+      dayPR = pr;
     }
-    if(d.date.toDateString() === yesterday.toDateString()){
-      yGen = d.gen;
+    if(d.toDateString()===yesterday.toDateString()){
+      yGen = gen;
     }
 
-    if(d.date.getMonth()===today.getMonth() &&
-       d.date.getFullYear()===today.getFullYear()){
-      monthGen += d.gen;
-      prSum += d.pr;
+    if(d.getMonth()===today.getMonth() &&
+       d.getFullYear()===today.getFullYear()){
+      monthGen += gen;
+      prSum += pr;
       prCount++;
 
-      dailyLabels.push(d.date.getDate());
-      dailyData.push(d.gen);
+      dailyLabels.push(d.getDate());
+      dailyData.push(gen);
     }
 
-    if(d.date.getFullYear()===today.getFullYear()){
-      yearGen += d.gen;
+    if(d.getFullYear()===today.getFullYear()){
+      yearGen += gen;
     }
+
+    const mKey = d.getFullYear()+"-"+(d.getMonth()+1);
+    monthMap[mKey]=(monthMap[mKey]||0)+gen;
   });
 
   document.getElementById("dayGen").innerText = dayGen.toFixed(2)+" MWh";
@@ -116,39 +104,28 @@ fetch(sheetURL)
   document.getElementById("monthGen").innerText = monthGen.toFixed(2)+" MWh";
   document.getElementById("yearGen").innerText = yearGen.toFixed(2)+" MWh";
   document.getElementById("dayPR").innerText = dayPR.toFixed(2)+" %";
-  document.getElementById("monthPR").innerText = (prSum/prCount).toFixed(2)+" %";
+  document.getElementById("monthPR").innerText =
+    prCount ? (prSum/prCount).toFixed(2)+" %" : "0 %";
 
   new Chart(dailyChart,{
     type:'bar',
     data:{
       labels:dailyLabels,
-      datasets:[{
-        label:'Daily Generation (MWh)',
-        data:dailyData
-      }]
+      datasets:[{label:'Daily Gen (MWh)',data:dailyData}]
     }
-  });
-
-  let monthMap={};
-  data.forEach(d=>{
-    let key = d.date.getFullYear()+"-"+(d.date.getMonth()+1);
-    monthMap[key]=(monthMap[key]||0)+d.gen;
   });
 
   new Chart(monthlyChart,{
     type:'bar',
     data:{
       labels:Object.keys(monthMap),
-      datasets:[{
-        label:'Monthly Generation (MWh)',
-        data:Object.values(monthMap)
-      }]
+      datasets:[{label:'Monthly Gen (MWh)',data:Object.values(monthMap)}]
     }
   });
 
 })
-.catch(err=>{
-  alert("Data load zala nahi. Sheet publish kela ka check kar.");
+.catch(e=>{
+  alert("Sheet data load nahi hotay. Publish to web check kar.");
 });
 </script>
 
