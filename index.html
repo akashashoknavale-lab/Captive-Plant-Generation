@@ -10,6 +10,39 @@ body{font-family:Arial;background:#f2f2f2;padding:20px;}
 .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;}
 .box{background:#f6c9a7;padding:12px;text-align:center;border-radius:6px;}
 canvas{background:#fff;padding:10px;border-radius:8px;}
+.main-layout{
+  display:flex;
+  gap:20px;
+}
+
+/* LEFT */
+.left-panel{
+  width:55%;
+}
+
+/* RIGHT */
+.right-panel{
+  width:45%;
+  display:flex;
+  flex-direction:column;
+  gap:20px;
+}
+
+/* GRAPH SIZE CONTROL HERE 👇 */
+.chart-box{
+  width:100%;
+  height:220px;   /* 🔥 change this to resize graph */
+  background:#fff;
+  padding:10px;
+  border-radius:8px;
+}
+
+/* Canvas fills box */
+.chart-box canvas{
+  width:100% !important;
+  height:100% !important;
+}
+
 </style>
 </head>
 
@@ -17,14 +50,33 @@ canvas{background:#fff;padding:10px;border-radius:8px;}
 
 <h2 style="text-align:center;">Shree Hari Fertilizers</h2>
 
-<div class="grid">
-  <div class="box">Day Gen<br><b id="dayGen">--</b></div>
-  <div class="box">Yesterday Gen<br><b id="yGen">--</b></div>
-  <div class="box">Month Gen<br><b id="monthGen">--</b></div>
-  <div class="box">Year Gen<br><b id="yearGen">--</b></div>
-  <div class="box">Day PR<br><b id="dayPR">--</b></div>
-  <div class="box">Month PR<br><b id="monthPR">--</b></div>
+<div class="main-layout">
+
+  <!-- LEFT SIDE : DATA BOXES -->
+  <div class="left-panel">
+    <div class="grid">
+      <div class="box">Day Gen<br><b id="dayGen">--</b></div>
+      <div class="box">Yesterday Gen<br><b id="yGen">--</b></div>
+      <div class="box">Month Gen<br><b id="monthGen">--</b></div>
+      <div class="box">Year Gen<br><b id="yearGen">--</b></div>
+      <div class="box">Day PR<br><b id="dayPR">--</b></div>
+      <div class="box">Month PR<br><b id="monthPR">--</b></div>
+    </div>
+  </div>
+
+  <!-- RIGHT SIDE : GRAPHS -->
+  <div class="right-panel">
+    <div class="chart-box">
+      <canvas id="dailyChart"></canvas>
+    </div>
+
+    <div class="chart-box">
+      <canvas id="monthlyChart"></canvas>
+    </div>
+  </div>
+
 </div>
+
 
 <br><br>
 <canvas id="dailyChart"></canvas>
