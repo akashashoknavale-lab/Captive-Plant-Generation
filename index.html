@@ -2,52 +2,21 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Solar Generation Dashboard</title>
+<title>Solar Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-body{
-  font-family: Arial, sans-serif;
-  background:#f4f6fb;
-  margin:0;
-  padding:15px;
-}
-.cards{
-  display:grid;
-  grid-template-columns: repeat(5,1fr);
-  gap:12px;
-}
-.card{
-  padding:15px;
-  border-radius:12px;
-  color:#fff;
-  text-align:center;
-  font-weight:bold;
-}
+body{font-family:Arial;background:#f4f6fb;padding:15px;}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px;}
+.card{color:#fff;padding:15px;border-radius:12px;text-align:center;font-weight:bold;}
 .card:nth-child(1){background:#4caf50;}
 .card:nth-child(2){background:#2196f3;}
 .card:nth-child(3){background:#ff9800;}
 .card:nth-child(4){background:#9c27b0;}
 .card:nth-child(5){background:#f44336;}
-
-.charts{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:20px;
-  margin-top:20px;
-}
-.chartBox{
-  background:#fff;
-  border-radius:14px;
-  padding:15px;
-  box-shadow:0 4px 10px rgba(0,0,0,.1);
-}
-select{
-  padding:6px 10px;
-  border-radius:6px;
-}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.chartBox{background:#fff;padding:15px;border-radius:14px;box-shadow:0 4px 10px rgba(0,0,0,.1);}
 </style>
 </head>
 
@@ -61,11 +30,11 @@ select{
 </div>
 
 <div class="cards">
-  <div class="card">Today<br><span id="todayGen">--</span></div>
-  <div class="card">Yesterday<br><span id="yesterdayGen">--</span></div>
-  <div class="card">Month Gen<br><span id="monthGen">--</span></div>
-  <div class="card">Year Gen<br><span id="yearGen">--</span></div>
-  <div class="card">Avg PR<br><span id="avgPR">--</span></div>
+  <div class="card">Today<br><span id="todayGen">0</span></div>
+  <div class="card">Yesterday<br><span id="yesterdayGen">0</span></div>
+  <div class="card">Month Gen<br><span id="monthGen">0</span></div>
+  <div class="card">Year Gen<br><span id="yearGen">0</span></div>
+  <div class="card">Avg PR<br><span id="avgPR">0</span></div>
 </div>
 
 <div class="charts">
@@ -80,47 +49,45 @@ select{
 </div>
 
 <script>
-const sheetURL =
+const SHEET_URL =
 "https://docs.google.com/spreadsheets/d/1Y3cr91xEEQj86B9hXMYdpp6UU1a33-vlrFcWKkLRujg/gviz/tq?tqx=out:json&gid=861206775";
 
-let rows=[];
-let dailyChart, monthlyChart;
+let rows=[],dailyChart=null,monthlyChart=null;
 
-// ---------- DATE PARSER ----------
+// -------- DATE PARSE --------
 function parseDDMMYY(str){
   if(!str) return null;
   let p=str.split("-");
   return new Date(`20${p[2]}`,p[1]-1,p[0]);
 }
 
-// ---------- CURRENT FY ----------
+// -------- CURRENT FY --------
 function getCurrentFY(){
   const t=new Date();
-  return t.getMonth()>=3 ? t.getFullYear() : t.getFullYear()-1;
+  return t.getMonth()>=3?t.getFullYear():t.getFullYear()-1;
 }
 
-// ---------- FETCH DATA ----------
-fetch(sheetURL)
-.then(res=>res.text())
+// -------- FETCH DATA --------
+fetch(SHEET_URL)
+.then(r=>r.text())
 .then(txt=>{
   const json=JSON.parse(txt.substr(47).slice(0,-2));
   const head=json.table.cols.map(c=>c.label);
 
   json.table.rows.forEach(r=>{
-    let obj={};
-    r.c.forEach((c,i)=>obj[head[i]]=c?c.v:"");
-    rows.push(obj);
+    let o={};
+    r.c.forEach((c,i)=>o[head[i]]=c?c.v:"");
+    rows.push(o);
   });
 
   initFYDropdown();
   renderDashboard();
 });
 
-// ---------- FY DROPDOWN ----------
+// -------- FY DROPDOWN --------
 function initFYDropdown(){
-  const sel=document.getElementById("fySelect");
-  let set=new Set();
-
+  let set=new Set(),sel=document.getElementById("fySelect");
+  sel.innerHTML="";
   rows.forEach(r=>{
     let d=parseDDMMYY(r["Date"]);
     if(!d) return;
@@ -128,109 +95,66 @@ function initFYDropdown(){
     set.add(fy);
   });
 
-  const curFY=getCurrentFY();
+  let cur=getCurrentFY();
   [...set].sort().reverse().forEach(y=>{
     let o=document.createElement("option");
     o.value=y;
     o.text=`${y}-${String(y+1).slice(2)}`;
-    if(y===curFY) o.selected=true;
+    if(y===cur) o.selected=true;
     sel.appendChild(o);
   });
 }
 
-// ---------- RENDER DASHBOARD ----------
+// -------- RENDER DASHBOARD --------
 function renderDashboard(){
-  const fy=parseInt(document.getElementById("fySelect").value);
-  const today=new Date();
-  let todayGen=0,yesterdayGen=0,monthGen=0,yearGen=0,prSum=0,prCnt=0;
+  let fy=parseInt(document.getElementById("fySelect").value);
+  let today=new Date();
+  let tGen=0,yGen=0,mGen=0,yGenFY=0,prSum=0,prCnt=0;
 
-  let dLabels=[],dData=[];
+  let dLab=[],dDat=[];
   let mMap={Apr:0,May:0,Jun:0,Jul:0,Aug:0,Sep:0,Oct:0,Nov:0,Dec:0,Jan:0,Feb:0,Mar:0};
-  const mArr=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  let mArr=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 
   rows.forEach(r=>{
     let d=parseDDMMYY(r["Date"]);
     if(!d) return;
-    let gen=parseFloat(r["Day Gen"])||0;
-    let pr=parseFloat(r["PR"])||0;
+    let gen=Number(r["Day Gen"])||0;
+    let pr=Number(r["PR"])||0;
     let fyYear=d.getMonth()>=3?d.getFullYear():d.getFullYear()-1;
 
-    if(d.toDateString()===today.toDateString()) todayGen+=gen;
-
+    if(d.toDateString()===today.toDateString()) tGen+=gen;
     let y=new Date(today); y.setDate(y.getDate()-1);
-    if(d.toDateString()===y.toDateString()) yesterdayGen+=gen;
-
-    if(d.getMonth()===today.getMonth() && d.getFullYear()===today.getFullYear())
-      monthGen+=gen;
-
-    if(fyYear===fy){
-      yearGen+=gen;
-      mMap[mArr[d.getMonth()]]+=gen;
-    }
-
-    if(pr>0){prSum+=pr; prCnt++;}
+    if(d.toDateString()===y.toDateString()) yGen+=gen;
+    if(d.getMonth()===today.getMonth() && d.getFullYear()===today.getFullYear()) mGen+=gen;
+    if(fyYear===fy){ yGenFY+=gen; mMap[mArr[d.getMonth()]]+=gen; }
+    if(pr>0){prSum+=pr;prCnt++;}
 
     if(d.getMonth()===today.getMonth() && d.getFullYear()===today.getFullYear()){
-      dLabels.push(d.getDate());
-      dData.push(gen);
+      dLab.push(d.getDate());
+      dDat.push(gen);
     }
   });
 
-  document.getElementById("todayGen").innerText=todayGen.toFixed(1);
-  document.getElementById("yesterdayGen").innerText=yesterdayGen.toFixed(1);
-  document.getElementById("monthGen").innerText=monthGen.toFixed(1);
-  document.getElementById("yearGen").innerText=yearGen.toFixed(1);
-  document.getElementById("avgPR").innerText=(prCnt?prSum/prCnt:0).toFixed(1);
+  todayGen.innerText=tGen.toFixed(1);
+  yesterdayGen.innerText=yGen.toFixed(1);
+  monthGen.innerText=mGen.toFixed(1);
+  yearGen.innerText=yGenFY.toFixed(1);
+  avgPR.innerText=(prCnt?prSum/prCnt:0).toFixed(1);
 
-if(dailyChart) dailyChart.destroy();
-dailyChart = new Chart(
-  document.getElementById("dailyChart"),
-  {
-    type: "bar",
-    data: {
-      labels: dLabels,
-      datasets: [{
-        data: dData,
-        backgroundColor: "#4caf50"
-      }]
-    },
-    options: {
-      plugins:{ legend:{display:false} },
-      scales:{
-        x:{ grid:{display:false} },
-        y:{ grid:{display:false} }
-      }
-    }
-  }
-);
+  if(dailyChart) dailyChart.destroy();
+  dailyChart=new Chart(document.getElementById("dailyChart"),{
+    type:"bar",
+    data:{labels:dLab,datasets:[{data:dDat,backgroundColor:"#4caf50"}]},
+    options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{display:false}}}}
+  });
 
-
-if(monthlyChart) monthlyChart.destroy();
-monthlyChart = new Chart(
-  document.getElementById("monthlyChart"),
-  {
-    type: "bar",
-    data: {
-      labels: Object.keys(mMap),
-      datasets: [{
-        data: Object.values(mMap),
-        backgroundColor: "#2196f3"
-      }]
-    },
-    options: {
-      plugins:{ legend:{display:false} },
-      scales:{
-        x:{ grid:{display:false} },
-        y:{ grid:{display:false} }
-      }
-    }
-  }
-);
-
+  if(monthlyChart) monthlyChart.destroy();
+  monthlyChart=new Chart(document.getElementById("monthlyChart"),{
+    type:"bar",
+    data:{labels:Object.keys(mMap),datasets:[{data:Object.values(mMap),backgroundColor:"#2196f3"}]},
+    options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{display:false}}}}
+  });
 }
-
-const dailyChartEl=document.getElementById("dailyChart");
-const monthlyChartEl=document.getElementById("monthlyChart");
 </script>
 
 </body>
