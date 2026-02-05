@@ -17,7 +17,18 @@ body{font-family:Arial;background:#f2f2f2;padding:20px;}
     box-shadow:0 6px 16px rgba(0,0,0,0.15);
     transition:transform 0.25s, box-shadow 0.25s;
   }
-  
+        .cards-row{
+        display:flex;
+        gap:14px;
+        width:100%;
+      }
+      
+      /* Make all cards equal width */
+      .cards-row .box{
+        flex:1;
+        min-width:0;   /* prevents wrapping */
+      }
+
   .box:hover{
     transform:translateY(-6px);
     box-shadow:0 10px 22px rgba(0,0,0,0.25);
