@@ -4,11 +4,32 @@
 <meta charset="UTF-8">
 <title>Solar Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
-body { font-family: Arial; background:#f5f5f5; }
-.box { padding:15px; background:#f6c9a7; margin:5px; text-align:center; }
-.green { background:#b7d99c; }
-.grid { display:grid; grid-template-columns: repeat(6, 1fr); gap:10px; }
+body{
+  font-family: Arial;
+  background:#f2f2f2;
+  margin:20px;
+}
+.grid{
+  display:grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap:10px;
+}
+.box{
+  background:#f6c9a7;
+  padding:12px;
+  text-align:center;
+  border-radius:6px;
+}
+.green{
+  background:#b7d99c;
+}
+canvas{
+  background:#fff;
+  padding:10px;
+  border-radius:8px;
+}
 </style>
 </head>
 
@@ -25,66 +46,67 @@ body { font-family: Arial; background:#f5f5f5; }
   <div class="box">Month PR<br><b id="monthPR">--</b></div>
 </div>
 
-<br>
+<br><br>
 
 <canvas id="dailyChart"></canvas>
-<br>
-<canvas id="monthChart"></canvas>
+<br><br>
+<canvas id="monthlyChart"></canvas>
 
 <script>
+// 👇 YOUR SHEET (ID + GID)
 const sheetURL =
-const sheetURL =
-"https://docs.google.com/spreadsheets/d/1Y3cr91xEEQj86B9hXMYdpp6UU1a33-vlrFcWKkLRujg/pub?output=csv";
+"https://docs.google.com/spreadsheets/d/1Y3cr91xEEQj86B9hXMYdpp6UU1a33-vlrFcWKkLRujg/export?format=csv&gid=861206775";
 
 fetch(sheetURL)
 .then(res => res.text())
 .then(csv => {
+
   const rows = csv.split("\n").slice(1);
-  let data = rows.map(r => {
+  let data = [];
+
+  rows.forEach(r=>{
     let c = r.split(",");
-    return {
+    if(c.length < 6) return;
+
+    data.push({
       plant: c[0],
       dc: parseFloat(c[1]),
       ac: parseFloat(c[2]),
       date: new Date(c[3]),
       gen: parseFloat(c[4]),
       pr: parseFloat(c[5])
-    };
+    });
   });
 
-  const today = new Date().toDateString();
-  const thisMonth = new Date().getMonth();
-  const thisYear = new Date().getFullYear();
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate()-1);
 
-  let dayGen = 0, dayPR = 0;
-  let yGen = 0;
-  let monthGen = 0, monthPRsum = 0, mCount = 0;
-  let yearGen = 0;
+  let dayGen=0, yGen=0, dayPR=0;
+  let monthGen=0, yearGen=0, prSum=0, prCount=0;
 
-  let dailyLabels = [], dailyValues = [];
+  let dailyLabels=[], dailyData=[];
 
-  data.forEach(d => {
-    if (d.date.toDateString() === today) {
+  data.forEach(d=>{
+    if(d.date.toDateString() === today.toDateString()){
       dayGen = d.gen;
       dayPR = d.pr;
     }
-
-    let y = new Date();
-    y.setDate(y.getDate()-1);
-    if (d.date.toDateString() === y.toDateString()) {
+    if(d.date.toDateString() === yesterday.toDateString()){
       yGen = d.gen;
     }
 
-    if (d.date.getMonth() === thisMonth && d.date.getFullYear() === thisYear) {
+    if(d.date.getMonth()===today.getMonth() &&
+       d.date.getFullYear()===today.getFullYear()){
       monthGen += d.gen;
-      monthPRsum += d.pr;
-      mCount++;
+      prSum += d.pr;
+      prCount++;
 
       dailyLabels.push(d.date.getDate());
-      dailyValues.push(d.gen);
+      dailyData.push(d.gen);
     }
 
-    if (d.date.getFullYear() === thisYear) {
+    if(d.date.getFullYear()===today.getFullYear()){
       yearGen += d.gen;
     }
   });
@@ -94,36 +116,39 @@ fetch(sheetURL)
   document.getElementById("monthGen").innerText = monthGen.toFixed(2)+" MWh";
   document.getElementById("yearGen").innerText = yearGen.toFixed(2)+" MWh";
   document.getElementById("dayPR").innerText = dayPR.toFixed(2)+" %";
-  document.getElementById("monthPR").innerText = (monthPRsum/mCount).toFixed(2)+" %";
+  document.getElementById("monthPR").innerText = (prSum/prCount).toFixed(2)+" %";
 
-  new Chart(dailyChart, {
-    type: 'bar',
-    data: {
-      labels: dailyLabels,
-      datasets: [{
-        label: 'Daily Generation',
-        data: dailyValues
+  new Chart(dailyChart,{
+    type:'bar',
+    data:{
+      labels:dailyLabels,
+      datasets:[{
+        label:'Daily Generation (MWh)',
+        data:dailyData
       }]
     }
   });
 
-  let monthMap = {};
+  let monthMap={};
   data.forEach(d=>{
-    let k = d.date.getFullYear()+"-"+(d.date.getMonth()+1);
-    monthMap[k] = (monthMap[k]||0)+d.gen;
+    let key = d.date.getFullYear()+"-"+(d.date.getMonth()+1);
+    monthMap[key]=(monthMap[key]||0)+d.gen;
   });
 
-  new Chart(monthChart,{
+  new Chart(monthlyChart,{
     type:'bar',
     data:{
       labels:Object.keys(monthMap),
       datasets:[{
-        label:'Monthly Generation',
+        label:'Monthly Generation (MWh)',
         data:Object.values(monthMap)
       }]
     }
   });
 
+})
+.catch(err=>{
+  alert("Data load zala nahi. Sheet publish kela ka check kar.");
 });
 </script>
 
