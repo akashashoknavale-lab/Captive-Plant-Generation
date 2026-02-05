@@ -182,19 +182,51 @@ function renderDashboard(){
   document.getElementById("yearGen").innerText=yearGen.toFixed(1);
   document.getElementById("avgPR").innerText=(prCnt?prSum/prCnt:0).toFixed(1);
 
-  if(dailyChart) dailyChart.destroy();
-  dailyChart=new Chart(dailyChartEl={
-    type:"bar",
-    data:{labels:dLabels,datasets:[{data:dData,backgroundColor:"#4caf50"}]},
-    options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{display:false}}}}
-  });
+if(dailyChart) dailyChart.destroy();
+dailyChart = new Chart(
+  document.getElementById("dailyChart"),
+  {
+    type: "bar",
+    data: {
+      labels: dLabels,
+      datasets: [{
+        data: dData,
+        backgroundColor: "#4caf50"
+      }]
+    },
+    options: {
+      plugins:{ legend:{display:false} },
+      scales:{
+        x:{ grid:{display:false} },
+        y:{ grid:{display:false} }
+      }
+    }
+  }
+);
 
-  if(monthlyChart) monthlyChart.destroy();
-  monthlyChart=new Chart(monthlyChartEl={
-    type:"bar",
-    data:{labels:Object.keys(mMap),datasets:[{data:Object.values(mMap),backgroundColor:"#2196f3"}]},
-    options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{display:false}}}}
-  });
+
+if(monthlyChart) monthlyChart.destroy();
+monthlyChart = new Chart(
+  document.getElementById("monthlyChart"),
+  {
+    type: "bar",
+    data: {
+      labels: Object.keys(mMap),
+      datasets: [{
+        data: Object.values(mMap),
+        backgroundColor: "#2196f3"
+      }]
+    },
+    options: {
+      plugins:{ legend:{display:false} },
+      scales:{
+        x:{ grid:{display:false} },
+        y:{ grid:{display:false} }
+      }
+    }
+  }
+);
+
 }
 
 const dailyChartEl=document.getElementById("dailyChart");
