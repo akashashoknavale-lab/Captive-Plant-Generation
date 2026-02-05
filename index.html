@@ -35,30 +35,46 @@ canvas{background:#fff;padding:10px;border-radius:8px;}
 const sheetURL =
 "https://docs.google.com/spreadsheets/d/1Y3cr91xEEQj86B9hXMYdpp6UU1a33-vlrFcWKkLRujg/export?format=csv&gid=861206775";
 
-// ✅ SAFE CSV PARSER
+function parseDDMMYY(dateStr){
+  if(!dateStr) return null;
+  let p = dateStr.split("-");
+  if(p.length !== 3) return null;
+
+  let dd = parseInt(p[0],10);
+  let mm = parseInt(p[1],10) - 1;
+  let yy = parseInt(p[2],10);
+  if(yy < 100) yy = 2000 + yy;
+
+  return new Date(yy, mm, dd);
+}
+
+function key(d){
+  return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate();
+}
+
 function parseCSV(text){
   const lines = text.trim().split("\n");
   const headers = lines.shift().split(",").map(h=>h.trim());
-
   return lines.map(l=>{
-    const values = l.split(",");
-    let obj = {};
-    headers.forEach((h,i)=>{
-      obj[h] = values[i] ? values[i].trim() : "";
-    });
-    return obj;
+    const v = l.split(",");
+    let o={};
+    headers.forEach((h,i)=>o[h]=v[i]?v[i].trim():"");
+    return o;
   });
 }
 
 fetch(sheetURL)
-.then(res => res.text())
-.then(csv => {
+.then(r=>r.text())
+.then(csv=>{
 
   const rows = parseCSV(csv);
 
   const today = new Date();
   const yesterday = new Date();
   yesterday.setDate(today.getDate()-1);
+
+  const todayKey = key(today);
+  const yesterdayKey = key(yesterday);
 
   let dayGen=0, yGen=0, dayPR=0;
   let monthGen=0, yearGen=0, prSum=0, prCount=0;
@@ -67,17 +83,18 @@ fetch(sheetURL)
   let monthMap={};
 
   rows.forEach(r=>{
-    if(!r["Date"] || !r["Day Gen"]) return;
+    const d = parseDDMMYY(r["Date"]);
+    if(!d) return;
 
-    const d = new Date(r["Date"]);
     const gen = parseFloat(r["Day Gen"]) || 0;
-    const pr = parseFloat(r["PR"]) || 0;
+    const pr  = parseFloat(r["PR"]) || 0;
 
-    if(d.toDateString()===today.toDateString()){
+    if(key(d) === todayKey){
       dayGen = gen;
       dayPR = pr;
     }
-    if(d.toDateString()===yesterday.toDateString()){
+
+    if(key(d) === yesterdayKey){
       yGen = gen;
     }
 
@@ -86,7 +103,6 @@ fetch(sheetURL)
       monthGen += gen;
       prSum += pr;
       prCount++;
-
       dailyLabels.push(d.getDate());
       dailyData.push(gen);
     }
@@ -95,39 +111,31 @@ fetch(sheetURL)
       yearGen += gen;
     }
 
-    const mKey = d.getFullYear()+"-"+(d.getMonth()+1);
+    let mKey = d.getFullYear()+"-"+(d.getMonth()+1);
     monthMap[mKey]=(monthMap[mKey]||0)+gen;
   });
 
   document.getElementById("dayGen").innerText = dayGen.toFixed(2)+" MWh";
-  document.getElementById("yGen").innerText = yGen.toFixed(2)+" MWh";
+  document.getElementById("yGen").innerText   = yGen.toFixed(2)+" MWh";
   document.getElementById("monthGen").innerText = monthGen.toFixed(2)+" MWh";
-  document.getElementById("yearGen").innerText = yearGen.toFixed(2)+" MWh";
+  document.getElementById("yearGen").innerText  = yearGen.toFixed(2)+" MWh";
   document.getElementById("dayPR").innerText = dayPR.toFixed(2)+" %";
   document.getElementById("monthPR").innerText =
     prCount ? (prSum/prCount).toFixed(2)+" %" : "0 %";
 
   new Chart(dailyChart,{
     type:'bar',
-    data:{
-      labels:dailyLabels,
-      datasets:[{label:'Daily Gen (MWh)',data:dailyData}]
-    }
+    data:{labels:dailyLabels,
+      datasets:[{label:'Daily Gen (MWh)',data:dailyData}]}
   });
 
   new Chart(monthlyChart,{
     type:'bar',
-    data:{
-      labels:Object.keys(monthMap),
-      datasets:[{label:'Monthly Gen (MWh)',data:Object.values(monthMap)}]
-    }
+    data:{labels:Object.keys(monthMap),
+      datasets:[{label:'Monthly Gen (MWh)',data:Object.values(monthMap)}]}
   });
 
-})
-.catch(e=>{
-  alert("Sheet data load nahi hotay. Publish to web check kar.");
 });
 </script>
-
 </body>
 </html>
