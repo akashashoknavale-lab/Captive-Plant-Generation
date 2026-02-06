@@ -154,22 +154,29 @@ fetch(sheetURL)
 });
 
 function initFYDropdown(){
-  let fySet=new Set();
+  let fySet = new Set();
   rows.forEach(r=>{
-    let d=parseDDMMYY(r["Date"]);
+    let d = parseDDMMYY(r["Date"]);
     if(!d) return;
     let fy = d.getMonth()>=3 ? d.getFullYear() : d.getFullYear()-1;
     fySet.add(fy);
   });
 
-  const sel=document.getElementById("fySelect");
+  const sel = document.getElementById("fySelect");
+  sel.innerHTML = "";
+
+  const today = new Date();
+  const liveFY = today.getMonth()>=3 ? today.getFullYear() : today.getFullYear()-1;
+
   [...fySet].sort().reverse().forEach(y=>{
-    let o=document.createElement("option");
-    o.value=y;
-    o.text=`${y}-${String(y+1).slice(2)}`;
+    let o = document.createElement("option");
+    o.value = y;
+    o.text  = `${y}-${String(y+1).slice(2)}`;
+    if(y === liveFY) o.selected = true;   // ⭐ AUTO SELECT LIVE FY
     sel.appendChild(o);
   });
 }
+
 
 function renderCharts(){
   let dayGen = 0;
