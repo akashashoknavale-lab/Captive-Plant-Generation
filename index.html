@@ -121,6 +121,10 @@ canvas{background:#fff;padding:10px;border-radius:8px;}
 <canvas id="monthlyChart"></canvas>
 
 <script>
+
+Chart.register(ChartDataLabels);
+ 
+  
 const sheetURL =
 "https://docs.google.com/spreadsheets/d/1Y3cr91xEEQj86B9hXMYdpp6UU1a33-vlrFcWKkLRujg/export?format=csv&gid=861206775";
 
@@ -252,7 +256,6 @@ function renderCharts(){
   // PR not available in sheet
   document.getElementById("dayPR").innerText = "--";
   document.getElementById("monthPR").innerText = "--";
-  Chart.register(ChartDataLabels);
 
   if(dailyChartRef) dailyChartRef.destroy();
   if(monthlyChartRef) monthlyChartRef.destroy();
