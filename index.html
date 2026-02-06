@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Solar Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body{font-family:Arial;background:#f2f2f2;padding:20px;}
@@ -121,10 +121,6 @@ canvas{background:#fff;padding:10px;border-radius:8px;}
 <canvas id="monthlyChart"></canvas>
 
 <script>
-
-Chart.register(ChartDataLabels);
- 
-  
 const sheetURL =
 "https://docs.google.com/spreadsheets/d/1Y3cr91xEEQj86B9hXMYdpp6UU1a33-vlrFcWKkLRujg/export?format=csv&gid=861206775";
 
@@ -257,73 +253,38 @@ function renderCharts(){
   document.getElementById("dayPR").innerText = "--";
   document.getElementById("monthPR").innerText = "--";
 
+
+
   if(dailyChartRef) dailyChartRef.destroy();
   if(monthlyChartRef) monthlyChartRef.destroy();
 
-dailyChartRef = new Chart(dailyChart,{
-  type:'bar',
-  data:{
-    labels:dailyLabels,
-    datasets:[{
-      label:'Daily Generation (kWh)',
+  dailyChartRef=new Chart(dailyChart,{
+    type:'bar',
+    data:{labels:dailyLabels,datasets:[{
+      label:'Current Month Daily Gen',
       data:dailyData,
-      backgroundColor:'#60a5fa',
-      borderRadius:8,
-      datalabels:{
-        anchor:'end',
-        align:'top',
-        formatter:v => (v/1000).toFixed(1)
-      }
-    }]
-  },
-  options:{
-    responsive:true,
-    maintainAspectRatio:false,
-    plugins:{
-      legend:{display:false}
-    },
-    scales:{
-      x:{grid:{display:false}},
-      y:{
-        title:{display:true,text:'Energy (MWh)'},
-        ticks:{callback:v=>v/1000},
-        grid:{display:false}
-      }
+      backgroundColor:'#60a5fa'
+    }]},
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      scales:{x:{grid:{display:false}},y:{grid:{display:false}}}
     }
-  }
-});
+  });
 
-
-monthlyChartRef = new Chart(monthlyChart,{
-  type:'bar',
-  data:{
-    labels:Object.keys(monthMap),
-    datasets:[{
+  monthlyChartRef=new Chart(monthlyChart,{
+    type:'bar',
+    data:{labels:Object.keys(monthMap),datasets:[{
       label:`FY ${fy}-${fy+1}`,
       data:Object.values(monthMap),
-      backgroundColor:'#34d399',
-      borderRadius:10,
-      datalabels:{
-        anchor:'end',
-        align:'top',
-        formatter:v => (v/1000).toFixed(1)
-      }
-    }]
-  },
-  options:{
-    responsive:true,
-    maintainAspectRatio:false,
-    scales:{
-      x:{grid:{display:false}},
-      y:{
-        title:{display:true,text:'Energy (MWh)'},
-        ticks:{callback:v=>v/1000},
-        grid:{display:false}
-      }
+      backgroundColor:'#34d399'
+    }]},
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      scales:{x:{grid:{display:false}},y:{grid:{display:false}}}
     }
-  }
-});
-
+  });
 }
 </script>
 
