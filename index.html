@@ -172,6 +172,12 @@ function initFYDropdown(){
 }
 
 function renderCharts(){
+  let dayGen = 0;
+  let yesterdayGen = 0;
+  let monthGen = 0;
+  let yearGen = 0;
+
+  
   const fy=parseInt(document.getElementById("fySelect").value);
   const today=new Date();
 
@@ -179,23 +185,68 @@ function renderCharts(){
   let monthMap={ Apr:0,May:0,Jun:0,Jul:0,Aug:0,Sep:0,Oct:0,Nov:0,Dec:0,Jan:0,Feb:0,Mar:0 };
 
   rows.forEach(r=>{
-    let d=parseDDMMYY(r["Date"]);
+    let d = parseDDMMYY(r["Date"]);
     if(!d) return;
-    let gen=parseFloat(r["Day Gen"])||0;
-
-    // DAILY → only current month
+  
+    let gen = parseFloat(r["Day Gen"]) || 0;
+  
+    // ---- TODAY ----
+    if(
+      d.getDate()===today.getDate() &&
+      d.getMonth()===today.getMonth() &&
+      d.getFullYear()===today.getFullYear()
+    ){
+      dayGen += gen;
+    }
+  
+    // ---- YESTERDAY ----
+    let y = new Date(today);
+    y.setDate(today.getDate()-1);
+    if(
+      d.getDate()===y.getDate() &&
+      d.getMonth()===y.getMonth() &&
+      d.getFullYear()===y.getFullYear()
+    ){
+      yesterdayGen += gen;
+    }
+  
+    // ---- CURRENT MONTH ----
+    if(
+      d.getMonth()===today.getMonth() &&
+      d.getFullYear()===today.getFullYear()
+    ){
+      monthGen += gen;
+    }
+  
+    // ---- FY YEAR ----
+    let fyYear = d.getMonth()>=3 ? d.getFullYear() : d.getFullYear()-1;
+    if(fyYear===fy){
+      yearGen += gen;
+    }
+  
+    // ---- DAILY CHART ----
     if(d.getMonth()===today.getMonth() && d.getFullYear()===today.getFullYear()){
       dailyLabels.push(d.getDate());
       dailyData.push(gen);
     }
-
-    // MONTHLY → FY
-    let fyYear = d.getMonth()>=3 ? d.getFullYear() : d.getFullYear()-1;
+  
+    // ---- MONTHLY CHART ----
     if(fyYear===fy){
       const m=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()];
       monthMap[m]+=gen;
     }
   });
+
+  document.getElementById("dayGen").innerText = dayGen.toFixed(2);
+  document.getElementById("yGen").innerText = yesterdayGen.toFixed(2);
+  document.getElementById("monthGen").innerText = monthGen.toFixed(2);
+  document.getElementById("yearGen").innerText = yearGen.toFixed(2);
+  
+  // PR not available in sheet
+  document.getElementById("dayPR").innerText = "--";
+  document.getElementById("monthPR").innerText = "--";
+
+
 
   if(dailyChartRef) dailyChartRef.destroy();
   if(monthlyChartRef) monthlyChartRef.destroy();
