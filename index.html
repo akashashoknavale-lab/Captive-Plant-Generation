@@ -115,15 +115,12 @@ canvas{background:#fff;padding:10px;border-radius:8px;}
 
 
 
+<br><br>
+<canvas id="dailyChart"></canvas>
+<br><br>
+<canvas id="monthlyChart"></canvas>
+
 <script>
-
-function getCurrentFY(){
-  const t = new Date();
-  return (t.getMonth() >= 3) ? t.getFullYear() : t.getFullYear() - 1;
-}
-
-
-  
 const sheetURL =
 "https://docs.google.com/spreadsheets/d/1Y3cr91xEEQj86B9hXMYdpp6UU1a33-vlrFcWKkLRujg/export?format=csv&gid=861206775";
 
@@ -158,75 +155,23 @@ fetch(sheetURL)
 
 function initFYDropdown(){
   let fySet=new Set();
-
   rows.forEach(r=>{
-
-            // ---- CARD CALCULATIONS ----
-        
-        // Today
-        if(d.toDateString() === today.toDateString()){
-          dayGen += gen;
-          if(r["PR"]){
-            dayPR += parseFloat(r["PR"]) || 0;
-            dayPRcnt++;
-          }
-        }
-        
-        // Yesterday
-        let yd = new Date(today);
-        yd.setDate(today.getDate()-1);
-        if(d.toDateString() === yd.toDateString()){
-          yGen += gen;
-        }
-        
-        // Month (current month)
-        if(d.getMonth()===today.getMonth() && d.getFullYear()===today.getFullYear()){
-          monthGen += gen;
-          if(r["PR"]){
-            monthPR += parseFloat(r["PR"]) || 0;
-            monthPRcnt++;
-          }
-        }
-        
-        // Year (selected FY)
-        if(fyYear === fy){
-          yearGen += gen;
-        }
-
-    
     let d=parseDDMMYY(r["Date"]);
     if(!d) return;
     let fy = d.getMonth()>=3 ? d.getFullYear() : d.getFullYear()-1;
     fySet.add(fy);
   });
 
-  
-
   const sel=document.getElementById("fySelect");
-  sel.innerHTML="";
-
-  const currentFY = getCurrentFY();   // ⭐ important
-
   [...fySet].sort().reverse().forEach(y=>{
     let o=document.createElement("option");
     o.value=y;
     o.text=`${y}-${String(y+1).slice(2)}`;
-    if(y === currentFY) o.selected = true; // ⭐ auto select
     sel.appendChild(o);
   });
 }
 
-
 function renderCharts(){
-  let dayGen = 0;
-  let yGen = 0;
-  let monthGen = 0;
-  let yearGen = 0;
-  
-  let dayPR = 0, dayPRcnt = 0;
-  let monthPR = 0, monthPRcnt = 0;
-
-  
   const fy=parseInt(document.getElementById("fySelect").value);
   const today=new Date();
 
