@@ -172,15 +172,15 @@ function processData(data) {
         let w = parseFloat(d.w) || 0;
         let dkwh = parseFloat(d.dkwh) || 0;
 
-        totalW += w / 100;
+        totalW += w /1000;
         totalDkwh += dkwh;
 
         let table = `
         <table>
             <tr><th colspan="2">${d.DeviceName}</th></tr>
-            <tr><td>AC (KW)</td><td>${(w/100).toFixed(2)}</td></tr>
+            <tr><td>AC(KW)</td><td>${(w/1000).toFixed(2)}</td></tr>
             <tr><td>Day Gen</td><td>${dkwh.toFixed(2)}</td></tr>
-            <tr><td>DC(KW)</td><td>${d.win || "-"}</td></tr>
+            <tr><td>DC(KW)</td><td>${d.win/1000 || "-"}</td></tr>
             <tr><td>Total Gen</td><td>${d.tkwh || "-"}</td></tr>
         `;
 
@@ -209,7 +209,7 @@ function processData(data) {
 
         div.innerHTML = `
             <h3>${d.DeviceName}</h3>
-            <p>⚡ ${(w/100).toFixed(2)} KW</p>
+            <p>⚡ ${(w/1000).toFixed(2)} KW</p>
             <p>🔋 ${dkwh.toFixed(2)}</p>
         `;
 
