@@ -103,7 +103,7 @@ function processData(data) {
         let w = parseFloat(d.w) || 0;
         let dkwh = parseFloat(d.dkwh) || 0;
 
-        totalW += w;
+        totalW += w/100;
         totalDkwh += dkwh;
 
         let div = document.createElement("div");
