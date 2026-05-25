@@ -184,49 +184,23 @@ function processData(data) {
             <tr><td>Total Gen</td><td>${d.tkwh || "-"}</td></tr>
         `;
 
-    // 🔥 First collect all string values
-    let stringValues = [];
-    
-    for (let i = 1; i <= 24; i++) {
-        let S = "s" + i;
-        let val = parseFloat(d[S]);
-    
-        if (!isNaN(val) && val > 0) {
-            stringValues.push(val);
-        }
-    }
-    
-    // 🔥 find max
-    let maxVal = Math.max(...stringValues);
-    
-    // 🔥 build table
-    for (let i = 1; i <= 24; i++) {
-        let S = "s" + i;
-        let val = d[S];
-    
-        let display = val;
-    
-        // 0 → "-"
-        if (val == 0 || val === "0" || val === "" || val === null) {
-            display = "-";
-        }
-    
-        let num = parseFloat(val);
-    
-        let bg = "";
-    
-        if (!isNaN(num) && num > 0) {
-            if (num === maxVal) {
-                bg = "background:green; color:white;";
-            } else {
-                bg = "background:yellow; color:black;";
+        for (let i = 1; i <= 24; i++) {
+            let S = "s" + i;
+        
+            if (d[S] !== undefined) {
+                let val = d[S];
+        
+                // 0 → "-"
+                if (val == 0 || val === "0" || val === "" || val === null) {
+                    val = "-";
+                }
+        
+                // 🔥 label change
+                let label = "String " + i;
+        
+                table += `<tr><td>${label}</td><td>${val}</td></tr>`;
             }
         }
-    
-        let label = "String " + i;
-    
-        table += `<tr style="${bg}"><td>${label}</td><td>${display}</td></tr>`;
-    }
 
         table += "</table>";
 
