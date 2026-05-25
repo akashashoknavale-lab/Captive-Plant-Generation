@@ -1,291 +1,97 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Solar Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>SCADA Dashboard</title>
 
-<style>
-body{font-family:Arial;background:#f2f2f2;padding:20px;}
-.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;}
-  .box{
-    padding:16px;
-    text-align:center;
-    border-radius:14px;
-    color:#fff;
-    font-weight:600;
-    box-shadow:0 6px 16px rgba(0,0,0,0.15);
-    transition:transform 0.25s, box-shadow 0.25s;
-  }
-        .cards-row{
-        display:flex;
-        gap:14px;
-        width:100%;
-      }
-      
-      /* Make all cards equal width */
-      .cards-row .box{
-        flex:1;
-        min-width:0;   /* prevents wrapping */
-      }
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
-  .box:hover{
-    transform:translateY(-6px);
-    box-shadow:0 10px 22px rgba(0,0,0,0.25);
-  }
-  
-  /* Individual colors */
-  .box:nth-child(1){ background:linear-gradient(135deg,#ff9a9e,#fad0c4);}
-  .box:nth-child(2){ background:linear-gradient(135deg,#a18cd1,#fbc2eb);}
-  .box:nth-child(3){ background:linear-gradient(135deg,#f6d365,#fda085);}
-  .box:nth-child(4){ background:linear-gradient(135deg,#84fab0,#8fd3f4);}
-  .box:nth-child(5){ background:linear-gradient(135deg,#ffecd2,#fcb69f); color:#333;}
-  .box:nth-child(6){ background:linear-gradient(135deg,#a1c4fd,#c2e9fb);}
+    <style>
+        body {
+            font-family: Arial;
+            background: #f2f2f2;
+            padding: 20px;
+        }
 
-canvas{background:#fff;padding:10px;border-radius:8px;}
-.main-layout{
-  display:flex;
-  gap:20px;
-}
+        h2 {
+            text-align: center;
+        }
 
-/* LEFT */
-.left-panel{
-  width:55%;
-}
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
 
-/* RIGHT */
-.right-panel{
-  width:45%;
-  display:flex;
-  flex-direction:column;
-  gap:20px;
-}
+        th, td {
+            border: 1px solid #ccc;
+            padding: 6px;
+            text-align: center;
+        }
 
-/* GRAPH SIZE CONTROL HERE 👇 */
-.chart-box{
-  width:100%;
-  height:230px;
-  background:linear-gradient(135deg,#ffffff,#f3f6fb);
-  padding:14px;
-  border-radius:16px;
-  box-shadow:0 8px 18px rgba(0,0,0,0.12);
-}
+        th {
+            background: #111;
+            color: white;
+        }
 
-
-/* Canvas fills box */
-.chart-box canvas{
-  width:100% !important;
-  height:100% !important;
-}
-
-</style>
+        #status {
+            margin: 10px 0;
+            font-weight: bold;
+        }
+    </style>
 </head>
 
 <body>
 
-<h2 style="text-align:center;">Shree Hari Fertilizers</h2>
-    <div style="margin:15px 0; text-align:right;">
-      <label style="font-weight:600;">Financial Year: </label>
-      <select id="fySelect" onchange="renderCharts()" style="padding:6px 10px;border-radius:8px;">
-      </select>
-    </div>
-  
-            <!-- ===== ROW 1 : CARDS ===== -->
-            <div class="cards-row">
-              <div class="box">Day Gen<br><b id="dayGen">--</b></div>
-              <div class="box">Yesterday Gen<br><b id="yGen">--</b></div>
-              <div class="box">Month Gen<br><b id="monthGen">--</b></div>
-              <div class="box">Year Gen<br><b id="yearGen">--</b></div>
-              <div class="box">Day PR<br><b id="dayPR">--</b></div>
-              <div class="box">Month PR<br><b id="monthPR">--</b></div>
-            </div>
-            
-            <br>
-            
-            <!-- ===== ROW 2 : GRAPHS ===== -->
-            <div class="graphs-row">
-              <div class="chart-box">
-                <canvas id="dailyChart"></canvas>
-              </div>
-            
-              <div class="chart-box">
-                <canvas id="monthlyChart"></canvas>
-              </div>
-            </div>
+<h2>⚡ SCADA LIVE DASHBOARD</h2>
 
+<div id="status">Loading...</div>
 
-
-<br><br>
-<canvas id="dailyChart"></canvas>
-<br><br>
-<canvas id="monthlyChart"></canvas>
+<table id="table"></table>
 
 <script>
-const sheetURL =
-"https://docs.google.com/spreadsheets/d/1Y3cr91xEEQj86B9hXMYdpp6UU1a33-vlrFcWKkLRujg/export?format=csv&gid=861206775";
 
-let rows = [];
-let dailyChartRef, monthlyChartRef;
+// ⭐ GitHub RAW CSV LINK (IMPORTANT)
+const CSV_URL =
+"https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/data/ALL_SITES.csv";
 
-function parseDDMMYY(str){
-  if(!str) return null;
-  let p=str.split("-");
-  let d=+p[0], m=+p[1]-1, y=+p[2];
-  if(y<100) y=2000+y;
-  return new Date(y,m,d);
+function loadCSV() {
+
+    Papa.parse(CSV_URL, {
+        download: true,
+        header: true,
+        complete: function(results) {
+
+            let data = results.data;
+
+            if (!data.length) return;
+
+            document.getElementById("status").innerText =
+                "Updated: " + new Date().toLocaleString();
+
+            let html = "<tr>";
+
+            Object.keys(data[0]).forEach(h => {
+                html += "<th>" + h + "</th>";
+            });
+
+            html += "</tr>";
+
+            data.forEach(r => {
+                html += "<tr>";
+                Object.values(r).forEach(v => {
+                    html += "<td>" + (v ?? "") + "</td>";
+                });
+                html += "</tr>";
+            });
+
+            document.getElementById("table").innerHTML = html;
+        }
+    });
 }
 
-function parseCSV(t){
-  const l=t.trim().split("\n");
-  const h=l.shift().split(",");
-  return l.map(r=>{
-    let v=r.split(","), o={};
-    h.forEach((k,i)=>o[k.trim()]=v[i]?.trim());
-    return o;
-  });
-}
+loadCSV();
+setInterval(loadCSV, 30000);
 
-fetch(sheetURL)
-.then(r=>r.text())
-.then(csv=>{
-  rows=parseCSV(csv);
-  initFYDropdown();
-  renderCharts();
-});
-
-function initFYDropdown(){
-  let fySet = new Set();
-  rows.forEach(r=>{
-    let d = parseDDMMYY(r["Date"]);
-    if(!d) return;
-    let fy = d.getMonth()>=3 ? d.getFullYear() : d.getFullYear()-1;
-    fySet.add(fy);
-  });
-
-  const sel = document.getElementById("fySelect");
-  sel.innerHTML = "";
-
-  const today = new Date();
-  const liveFY = today.getMonth()>=3 ? today.getFullYear() : today.getFullYear()-1;
-
-  [...fySet].sort().reverse().forEach(y=>{
-    let o = document.createElement("option");
-    o.value = y;
-    o.text  = `${y}-${String(y+1).slice(2)}`;
-    if(y === liveFY) o.selected = true;   // ⭐ AUTO SELECT LIVE FY
-    sel.appendChild(o);
-  });
-}
-
-
-function renderCharts(){
-  let dayGen = 0;
-  let yesterdayGen = 0;
-  let monthGen = 0;
-  let yearGen = 0;
-
-  
-  const fy=parseInt(document.getElementById("fySelect").value);
-  const today=new Date();
-
-  let dailyLabels=[], dailyData=[];
-  let monthMap={ Apr:0,May:0,Jun:0,Jul:0,Aug:0,Sep:0,Oct:0,Nov:0,Dec:0,Jan:0,Feb:0,Mar:0 };
-
-  rows.forEach(r=>{
-    let d = parseDDMMYY(r["Date"]);
-    if(!d) return;
-  
-    let gen = parseFloat(r["Day Gen"]) || 0;
-  
-    // ---- TODAY ----
-    if(
-      d.getDate()===today.getDate() &&
-      d.getMonth()===today.getMonth() &&
-      d.getFullYear()===today.getFullYear()
-    ){
-      dayGen += gen;
-    }
-  
-    // ---- YESTERDAY ----
-    let y = new Date(today);
-    y.setDate(today.getDate()-1);
-    if(
-      d.getDate()===y.getDate() &&
-      d.getMonth()===y.getMonth() &&
-      d.getFullYear()===y.getFullYear()
-    ){
-      yesterdayGen += gen;
-    }
-  
-    // ---- CURRENT MONTH ----
-    if(
-      d.getMonth()===today.getMonth() &&
-      d.getFullYear()===today.getFullYear()
-    ){
-      monthGen += gen;
-    }
-  
-    // ---- FY YEAR ----
-    let fyYear = d.getMonth()>=3 ? d.getFullYear() : d.getFullYear()-1;
-    if(fyYear===fy){
-      yearGen += gen;
-    }
-  
-    // ---- DAILY CHART ----
-    if(d.getMonth()===today.getMonth() && d.getFullYear()===today.getFullYear()){
-      dailyLabels.push(d.getDate());
-      dailyData.push(gen);
-    }
-  
-    // ---- MONTHLY CHART ----
-    if(fyYear===fy){
-      const m=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()];
-      monthMap[m]+=gen;
-    }
-  });
-
-  document.getElementById("dayGen").innerText = dayGen.toFixed(2);
-  document.getElementById("yGen").innerText = yesterdayGen.toFixed(2);
-  document.getElementById("monthGen").innerText = monthGen.toFixed(2);
-  document.getElementById("yearGen").innerText = yearGen.toFixed(2);
-  
-  // PR not available in sheet
-  document.getElementById("dayPR").innerText = "--";
-  document.getElementById("monthPR").innerText = "--";
-
-
-
-  if(dailyChartRef) dailyChartRef.destroy();
-  if(monthlyChartRef) monthlyChartRef.destroy();
-
-  dailyChartRef=new Chart(dailyChart,{
-    type:'bar',
-    data:{labels:dailyLabels,datasets:[{
-      label:'Current Month Daily Gen',
-      data:dailyData,
-      backgroundColor:'#60a5fa'
-    }]},
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      scales:{x:{grid:{display:false}},y:{grid:{display:false}}}
-    }
-  });
-
-  monthlyChartRef=new Chart(monthlyChart,{
-    type:'bar',
-    data:{labels:Object.keys(monthMap),datasets:[{
-      label:`FY ${fy}-${fy+1}`,
-      data:Object.values(monthMap),
-      backgroundColor:'#34d399'
-    }]},
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      scales:{x:{grid:{display:false}},y:{grid:{display:false}}}
-    }
-  });
-}
 </script>
 
 </body>
