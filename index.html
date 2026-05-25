@@ -63,26 +63,6 @@
 <div class="grid" id="inverters"></div>
 
 <script>
-const API_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnTcBrJaxl83YOmurro5F9b7KxU3n471rFtPF4d9xWBsMqG1Z9OGJPWJhncv7dqMCfAWTEtYOHVEuAI42iaThCc4TS3Tbuq5tGfG2lkAa5XKVELLb3vcoN8zo5DN0IIGmAsF6sIVzQTlR7OOL9wIgEHotGZWjBgicE7Ilcf0-nZF-bMDhfhsy25lPwdpFYJkgrA6nuBnDRxwk4OZiGWond7o9vYDrTNogGV_H6yGZU9mP92z0GoxnlFNF12P0xPlUgZsBDxZTMIkzE5PSBiDhm_nZsg7OQ&lib=M-RzSCphjG_2CuoD0BzClFyT8B5DgJEAP";
-
-async function loadData() {
-    let res = await fetch(API_URL);
-    let data = await res.text();
-
-    // CSV parse
-    let rows = data.trim().split("\n");
-    let headers = rows[0].split(",");
-
-    let json = rows.slice(1).map(row => {
-        let values = row.split(",");
-        let obj = {};
-        headers.forEach((h, i) => obj[h.trim()] = values[i]);
-        return obj;
-    });
-
-    processData(json);
-}
-
 function processData(data) {
     let latest = {};
 
@@ -103,28 +83,38 @@ function processData(data) {
         let w = parseFloat(d.w) || 0;
         let dkwh = parseFloat(d.dkwh) || 0;
 
-        totalW += w/100;
+        totalW += w / 100;
         totalDkwh += dkwh;
 
         let div = document.createElement("div");
         div.className = "inv";
 
-        div.innerHTML = `
-            <h3>${d.DeviceName}</h3>
-            <p>⚡ KW: ${w.toFixed(2)}</p>
-            <p>🔋 Inv Day Gen: ${dkwh.toFixed(2)}</p>
+        // 🔥 TABLE बनवत आहोत
+        let table = `<table border="1" style="width:100%; font-size:12px">
+            <tr><th colspan="2">${d.DeviceName}</th></tr>
+            <tr><td>⚡ KW</td><td>${w.toFixed(2)}</td></tr>
+            <tr><td>🔋 dkwh</td><td>${dkwh.toFixed(2)}</td></tr>
+            <tr><td>win</td><td>${d.win}</td></tr>
+            <tr><td>tkwh</td><td>${d.tkwh}</td></tr>
         `;
 
+        // 🔥 s1 to s24 loop
+        for (let i = 1; i <= 24; i++) {
+            let key = "s" + i;
+            if (d[key] !== undefined) {
+                table += `<tr><td>${key}</td><td>${d[key]}</td></tr>`;
+            }
+        }
+
+        table += "</table>";
+
+        div.innerHTML = table;
         container.appendChild(div);
     });
 
     document.getElementById("totalW").innerText = totalW.toFixed(2);
     document.getElementById("totalDkwh").innerText = totalDkwh.toFixed(2);
 }
-
-// Auto refresh every 6 sec
-loadData();
-setInterval(loadData, 6000);
 </script>
 
 </body>
