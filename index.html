@@ -26,13 +26,13 @@
             background: #1e293b;
             padding: 20px;
             border-radius: 10px;
-            width: 200px;
+            width: 150px;
             text-align: center;
         }
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(6, 1fr);
             gap: 15px;
         }
 
@@ -46,7 +46,7 @@
         table {
             border-collapse: collapse;
             width: 100%;
-            font-size: 12px;
+            font-size: 15px;
         }
 
         td, th {
@@ -132,16 +132,16 @@ function processData(data) {
         <table>
             <tr><th colspan="2">${d.DeviceName}</th></tr>
             <tr><td>KW</td><td>${(w/100).toFixed(2)}</td></tr>
-            <tr><td>dkwh</td><td>${dkwh.toFixed(2)}</td></tr>
-            <tr><td>win</td><td>${d.win || "-"}</td></tr>
-            <tr><td>tkwh</td><td>${d.tkwh || "-"}</td></tr>
+            <tr><td>Day Gen</td><td>${dkwh.toFixed(2)}</td></tr>
+            <tr><td>DC(W)</td><td>${d.win || "-"}</td></tr>
+            <tr><td>Total Gen</td><td>${d.tkwh || "-"}</td></tr>
         `;
 
         // s1 to s24
         for (let i = 1; i <= 24; i++) {
-            let key = "s" + i;
-            if (d[key] !== undefined) {
-                table += `<tr><td>${key}</td><td>${d[key]}</td></tr>`;
+            let S = "s" + i;
+            if (d[S] !== undefined) {
+                table += `<tr><td>${S}</td><td>${d[S]}</td></tr>`;
             }
         }
 
