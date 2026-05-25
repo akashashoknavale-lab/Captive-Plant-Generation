@@ -52,7 +52,7 @@
         td, th {
             border: 1px solid #334155;
             padding: 4px;
-            text-align: left;
+            text-align: center;
         }
 
         th {
@@ -131,9 +131,9 @@ function processData(data) {
         let table = `
         <table>
             <tr><th colspan="2">${d.DeviceName}</th></tr>
-            <tr><td>KW</td><td>${(w/100).toFixed(2)}</td></tr>
+            <tr><td>AC (KW)</td><td>${(w/100).toFixed(2)}</td></tr>
             <tr><td>Day Gen</td><td>${dkwh.toFixed(2)}</td></tr>
-            <tr><td>DC(W)</td><td>${d.win || "-"}</td></tr>
+            <tr><td>DC(KW)</td><td>${d.win || "-"}</td></tr>
             <tr><td>Total Gen</td><td>${d.tkwh || "-"}</td></tr>
         `;
 
