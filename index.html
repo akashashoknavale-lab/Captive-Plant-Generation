@@ -14,11 +14,13 @@
 
         h1 {
             text-align: center;
+            font-size: 32px;
         }
 
         .top {
             display: flex;
-            justify-content: space-around;
+            justify-content: center;
+            gap: 40px;
             margin-bottom: 20px;
         }
 
@@ -26,38 +28,77 @@
             background: #1e293b;
             padding: 20px;
             border-radius: 10px;
-            width: 150px;
+            width: 180px;
             text-align: center;
+            font-size: 20px;
         }
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 15px;
+            grid-template-columns: repeat(3, 280px);
+            justify-content: center;
+            gap: 20px;
         }
 
         .inv {
             background: #1e293b;
             padding: 10px;
             border-radius: 10px;
-            overflow-x: auto;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .inv:hover {
+            transform: scale(1.05);
+            transition: 0.2s;
         }
 
         table {
             border-collapse: collapse;
             width: 100%;
-            font-size: 15px;
+            font-size: 14px;
         }
 
         td, th {
             border: 1px solid #334155;
-            padding: 4px;
+            padding: 6px;
             text-align: center;
         }
 
         th {
             background: #020617;
+            font-size: 16px;
         }
+
+        /* MODAL */
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+        }
+
+        #modalBox {
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-height: 90%;
+            overflow: auto;
+        }
+
+        button {
+            float: right;
+            padding: 6px 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+
     </style>
 </head>
 
@@ -78,6 +119,14 @@
 </div>
 
 <div class="grid" id="inverters"></div>
+
+<!-- MODAL -->
+<div id="modal">
+    <div id="modalBox">
+        <button onclick="closeModal()">❌ Close</button>
+        <div id="modalContent"></div>
+    </div>
+</div>
 
 <script>
 
@@ -125,9 +174,6 @@ function processData(data) {
         totalW += w / 100;
         totalDkwh += dkwh;
 
-        let div = document.createElement("div");
-        div.className = "inv";
-
         let table = `
         <table>
             <tr><th colspan="2">${d.DeviceName}</th></tr>
@@ -137,7 +183,6 @@ function processData(data) {
             <tr><td>Total Gen</td><td>${d.tkwh || "-"}</td></tr>
         `;
 
-        // s1 to s24
         for (let i = 1; i <= 24; i++) {
             let S = "s" + i;
             if (d[S] !== undefined) {
@@ -147,12 +192,33 @@ function processData(data) {
 
         table += "</table>";
 
-        div.innerHTML = table;
+        let div = document.createElement("div");
+        div.className = "inv";
+
+        div.innerHTML = `
+            <h3>${d.DeviceName}</h3>
+            <p>⚡ ${(w/100).toFixed(2)} KW</p>
+            <p>🔋 ${dkwh.toFixed(2)}</p>
+        `;
+
+        // CLICK → OPEN MODAL
+        div.onclick = () => openModal(table);
+
         container.appendChild(div);
     });
 
     document.getElementById("totalW").innerText = totalW.toFixed(2);
     document.getElementById("totalDkwh").innerText = totalDkwh.toFixed(2);
+}
+
+// MODAL FUNCTIONS
+function openModal(content) {
+    document.getElementById("modal").style.display = "flex";
+    document.getElementById("modalContent").innerHTML = content;
+}
+
+function closeModal() {
+    document.getElementById("modal").style.display = "none";
 }
 
 // refresh every 6 sec
