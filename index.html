@@ -27,15 +27,15 @@
         .card {
             background: #1e293b;
             padding: 20px;
-            border-radius: 10px;
-            width: 180px;
+            border-radius: 30px;
+            width: 200px;
             text-align: center;
-            font-size: 20px;
+            font-size: 16px;
         }
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(3, 280px);
+            grid-template-columns: repeat(6, 150px);
             justify-content: center;
             gap: 20px;
         }
@@ -43,7 +43,7 @@
         .inv {
             background: #1e293b;
             padding: 10px;
-            border-radius: 10px;
+            border-radius: 20px;
             cursor: pointer;
             text-align: center;
         }
@@ -56,18 +56,19 @@
         table {
             border-collapse: collapse;
             width: 100%;
-            font-size: 14px;
+            font-size: 20px;
         }
 
         td, th {
             border: 1px solid #334155;
             padding: 6px;
             text-align: center;
+            font-size: 16px;
         }
 
         th {
             background: #020617;
-            font-size: 16px;
+            font-size: 20px;
         }
 
         /* MODAL */
@@ -183,12 +184,49 @@ function processData(data) {
             <tr><td>Total Gen</td><td>${d.tkwh || "-"}</td></tr>
         `;
 
-        for (let i = 1; i <= 24; i++) {
-            let S = "s" + i;
-            if (d[S] !== undefined) {
-                table += `<tr><td>${S}</td><td>${d[S]}</td></tr>`;
+    // 🔥 First collect all string values
+    let stringValues = [];
+    
+    for (let i = 1; i <= 24; i++) {
+        let S = "s" + i;
+        let val = parseFloat(d[S]);
+    
+        if (!isNaN(val) && val > 0) {
+            stringValues.push(val);
+        }
+    }
+    
+    // 🔥 find max
+    let maxVal = Math.max(...stringValues);
+    
+    // 🔥 build table
+    for (let i = 1; i <= 24; i++) {
+        let S = "s" + i;
+        let val = d[S];
+    
+        let display = val;
+    
+        // 0 → "-"
+        if (val == 0 || val === "0" || val === "" || val === null) {
+            display = "-";
+        }
+    
+        let num = parseFloat(val);
+    
+        let bg = "";
+    
+        if (!isNaN(num) && num > 0) {
+            if (num === maxVal) {
+                bg = "background:green; color:white;";
+            } else {
+                bg = "background:yellow; color:black;";
             }
         }
+    
+        let label = "String " + i;
+    
+        table += `<tr style="${bg}"><td>${label}</td><td>${display}</td></tr>`;
+    }
 
         table += "</table>";
 
