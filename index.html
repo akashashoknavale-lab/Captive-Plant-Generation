@@ -46,16 +46,16 @@
 
 <body>
 
-<h1>⚡ Live Inverter Dashboard</h1>
+<h1>⚡ Pyramid Phase 2</h1>
 
 <div class="top">
     <div class="card">
-        <h2>Total W</h2>
+        <h2>Total KW</h2>
         <p id="totalW">0</p>
     </div>
 
     <div class="card">
-        <h2>Total dkwh</h2>
+        <h2>Total Day Gen</h2>
         <p id="totalDkwh">0</p>
     </div>
 </div>
@@ -111,8 +111,8 @@ function processData(data) {
 
         div.innerHTML = `
             <h3>${d.DeviceName}</h3>
-            <p>⚡ W: ${w.toFixed(2)}</p>
-            <p>🔋 dkwh: ${dkwh.toFixed(2)}</p>
+            <p>⚡ KW: ${w.toFixed(2)}</p>
+            <p>🔋 Inv Day Gen: ${dkwh.toFixed(2)}</p>
         `;
 
         container.appendChild(div);
