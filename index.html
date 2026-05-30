@@ -111,8 +111,6 @@
     <div class="card">
         <h2>Total KW</h2>
         <p id="totalW">0</p>
-        <div class="top">    
-</div>
     </div>
 
     <div class="card">
@@ -120,26 +118,6 @@
         <p id="totalDkwh">0</p>
     </div>
 </div>
-    <div class="card">
-        <h3>PT Phase 1</h3>
-        <p id="g1">0 KW</p>
-    </div>
-
-    <div class="card">
-        <h3>PT Phase 2</h3>
-        <p id="g2">0 KW</p>
-    </div>
-
-    <div class="card">
-        <h3>Swati</h3>
-        <p id="g3">0 KW</p>
-    </div>
-
-    <div class="card">
-        <h3>Bhageria</h3>
-        <p id="g4">0 KW</p>
-    </div>
-
 
 <div class="grid" id="inverters"></div>
 
@@ -173,104 +151,7 @@ async function loadData() {
 }
 
 function processData(data) {
-let totalW = 0;
-let totalDkwh = 0;
 
-// Group totals
-let g1 = 0; // PT_1_1 to PT_1_13
-let g2 = 0; // PT_2_1 to PT_2_11
-let g3 = 0; // Swati_1 to Swati_8
-let g4 = 0; // BIL_1 to BIL_5
-
-let container = document.getElementById("inverters");
-container.innerHTML = "";
-
-Object.values(latest).forEach(d => {
-
-    let w = parseFloat(d.w) || 0;
-    let dkwh = parseFloat(d.dkwh) || 0;
-
-    let kw = w / 1000;
-
-    totalW += kw;
-    totalDkwh += dkwh;
-
-    // ==========================
-    // GROUP TOTALS
-    // ==========================
-
-    if (d.DeviceName.startsWith("PT_1_")) {
-        g1 += kw;
-    }
-    else if (d.DeviceName.startsWith("PT_2_")) {
-        g2 += kw;
-    }
-    else if (d.DeviceName.startsWith("Swati_")) {
-        g3 += kw;
-    }
-    else if (d.DeviceName.startsWith("BIL_")) {
-        g4 += kw;
-    }
-
-    let table = `
-    <table>
-        <tr><th colspan="2">${d.DeviceName}</th></tr>
-        <tr><td>AC(KW)</td><td>${kw.toFixed(2)}</td></tr>
-        <tr><td>Day Gen</td><td>${dkwh.toFixed(2)}</td></tr>
-        <tr><td>DC(KW)</td><td>${((parseFloat(d.win)||0)/1000).toFixed(2)}</td></tr>
-        <tr><td>Total Gen</td><td>${d.tkwh || "-"}</td></tr>
-    `;
-
-    for (let i = 1; i <= 24; i++) {
-        let S = "s" + i;
-
-        if (d[S] !== undefined) {
-
-            let val = d[S];
-
-            if (val == 0 || val === "0" || val === "" || val === null) {
-                val = "-";
-            }
-
-            table += `<tr><td>String ${i}</td><td>${val}</td></tr>`;
-        }
-    }
-
-    table += "</table>";
-
-    let div = document.createElement("div");
-    div.className = "inv";
-
-    div.innerHTML = `
-        <h3>${d.DeviceName}</h3>
-        <p>⚡ ${kw.toFixed(2)} KW</p>
-        <p>🔋 ${dkwh.toFixed(2)}</p>
-    `;
-
-    div.onclick = () => openModal(table);
-
-    container.appendChild(div);
-});
-
-// Main totals
-document.getElementById("totalW").innerText =
-    totalW.toFixed(2) + " KW";
-
-document.getElementById("totalDkwh").innerText =
-    totalDkwh.toFixed(2) + " kWh";
-
-// Group totals
-document.getElementById("g1").innerText =
-    g1.toFixed(2) + " KW";
-
-document.getElementById("g2").innerText =
-    g2.toFixed(2) + " KW";
-
-document.getElementById("g3").innerText =
-    g3.toFixed(2) + " KW";
-
-document.getElementById("g4").innerText =
-    g4.toFixed(2) + " KW";
     let latest = {};
 
     data.forEach(d => {
