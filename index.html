@@ -1,242 +1,247 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Malangdev Remote Monitoring</title>
-
-    <style>
-        body {
-            font-family: Arial;
-            background: #0f172a;
-            color: white;
-            margin: 0;
-            padding: 20px;
-        }
-
-        h1 {
-            text-align: center;
-            font-size: 32px;
-        }
-
-        .top {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
-            margin-bottom: 20px;
-        }
-
-        .card {
-            background: #1e293b;
-            padding: 20px;
-            border-radius: 30px;
-            width: 200px;
-            text-align: center;
-            font-size: 16px;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(6, 150px);
-            justify-content: center;
-            gap: 20px;
-        }
-
-        .inv {
-            background: #1e293b;
-            padding: 10px;
-            border-radius: 20px;
-            cursor: pointer;
-            text-align: center;
-        }
-
-        .inv:hover {
-            transform: scale(1.05);
-            transition: 0.2s;
-        }
-
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            font-size: 20px;
-        }
-
-        td, th {
-            border: 1px solid #334155;
-            padding: 6px;
-            text-align: center;
-            font-size: 16px;
-        }
-
-        th {
-            background: #020617;
-            font-size: 20px;
-        }
-
-        /* MODAL */
-        #modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            justify-content: center;
-            align-items: center;
-        }
-
-        #modalBox {
-            background: #1e293b;
-            padding: 20px;
-            border-radius: 10px;
-            width: 80%;
-            max-height: 90%;
-            overflow: auto;
-        }
-
-        button {
-            float: right;
-            padding: 6px 12px;
-            margin-bottom: 10px;
-            cursor: pointer;
-        }
-
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Malangdev Solar Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #0f172a; color: #f1f5f9; min-height: 100vh; }
+.dash { padding: 1.5rem 1rem; max-width: 1200px; margin: 0 auto; }
+.site-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; }
+.site-title { font-size: 15px; font-weight: 500; color: #f1f5f9; }
+.site-sub { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: #1D9E75; flex-shrink: 0; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+.metric-card { background: #1e293b; border-radius: 8px; padding: 0.9rem 1rem; }
+.metric-label { font-size: 11px; color: #94a3b8; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+.metric-value { font-size: 22px; font-weight: 500; color: #f1f5f9; }
+.metric-unit { font-size: 12px; color: #94a3b8; font-weight: 400; margin-left: 2px; }
+.section-title { font-size: 13px; font-weight: 500; color: #94a3b8; margin-bottom: 10px; letter-spacing: 0.03em; }
+.inverter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+.inv-card { background: #1e293b; border: 0.5px solid #334155; border-radius: 12px; padding: 0.9rem 1rem; cursor: pointer; transition: border-color 0.15s; }
+.inv-card:hover { border-color: #64748b; }
+.inv-card.active { border: 2px solid #1D9E75; }
+.inv-name { font-size: 13px; font-weight: 500; color: #f1f5f9; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inv-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.inv-row-label { font-size: 11px; color: #94a3b8; }
+.inv-row-val { font-size: 12px; font-weight: 500; color: #f1f5f9; }
+.inv-badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 20px; margin-bottom: 8px; }
+.badge-on { background: #EAF3DE; color: #3B6D11; }
+.badge-off { background: #334155; color: #94a3b8; }
+.detail-panel { background: #1e293b; border: 0.5px solid #334155; border-radius: 12px; padding: 1.2rem; display: none; margin-bottom: 1.5rem; }
+.detail-panel.visible { display: block; }
+.detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.detail-title { font-size: 15px; font-weight: 500; color: #f1f5f9; }
+.close-btn { background: none; border: 0.5px solid #64748b; border-radius: 8px; padding: 4px 10px; font-size: 12px; color: #94a3b8; cursor: pointer; }
+.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-bottom: 1rem; }
+.detail-stat { background: #0f172a; border-radius: 8px; padding: 0.6rem 0.8rem; }
+.detail-stat-label { font-size: 10px; color: #94a3b8; margin-bottom: 3px; }
+.detail-stat-val { font-size: 16px; font-weight: 500; color: #f1f5f9; }
+.strings-title { font-size: 12px; color: #94a3b8; margin-bottom: 8px; }
+.strings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 6px; }
+.string-item { background: #0f172a; border-radius: 8px; padding: 5px 8px; text-align: center; }
+.string-label { font-size: 10px; color: #94a3b8; }
+.string-val { font-size: 13px; font-weight: 500; color: #f1f5f9; }
+.status-bar { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #94a3b8; margin-top: 1rem; padding-top: 1rem; border-top: 0.5px solid #334155; }
+.refresh-btn { margin-left: auto; background: none; border: 0.5px solid #64748b; border-radius: 8px; padding: 4px 10px; font-size: 11px; color: #94a3b8; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+.progress-bar { background: #0f172a; border-radius: 4px; height: 4px; margin-top: 6px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 4px; background: #1D9E75; transition: width 0.5s; }
+.error-msg { color: #E24B4A; font-size: 13px; padding: 1rem; text-align: center; }
+.loading-msg { color: #94a3b8; font-size: 13px; padding: 2rem; text-align: center; }
+</style>
 </head>
-
 <body>
 
-<h1>⚡ Malangdev sites Pyramid Technoplast phase 1 and 2, Swati, Bhageria</h1>
-
-<div class="top">
-    <div class="card">
-        <h2>Total KW</h2>
-        <p id="totalW">0</p>
+<div class="dash">
+  <div class="site-header">
+    <div class="live-dot" id="liveDot"></div>
+    <div>
+      <div class="site-title">Malangdev Sites — Solar Monitor</div>
+      <div class="site-sub">Pyramid Technoplast Ph1 &amp; Ph2 · Swati · Bhageria</div>
     </div>
+  </div>
 
-    <div class="card">
-        <h2>Total Day Gen</h2>
-        <p id="totalDkwh">0</p>
+  <div class="metrics">
+    <div class="metric-card">
+      <div class="metric-label">⚡ Live Power</div>
+      <div class="metric-value" id="totalKW">—<span class="metric-unit">KW</span></div>
     </div>
-</div>
-
-<div class="grid" id="inverters"></div>
-
-<!-- MODAL -->
-<div id="modal">
-    <div id="modalBox">
-        <button onclick="closeModal()">❌ Close</button>
-        <div id="modalContent"></div>
+    <div class="metric-card">
+      <div class="metric-label">☀️ Today's Gen</div>
+      <div class="metric-value" id="totalDay">—<span class="metric-unit">kWh</span></div>
     </div>
+    <div class="metric-card">
+      <div class="metric-label">📊 Active Inverters</div>
+      <div class="metric-value" id="activeCount">—</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">🔄 Last Update</div>
+      <div class="metric-value" style="font-size:14px; padding-top:4px;" id="lastUpdate">—</div>
+    </div>
+  </div>
+
+  <div class="section-title">Inverters</div>
+  <div class="inverter-grid" id="inverterGrid">
+    <div class="loading-msg">Fetching live data...</div>
+  </div>
+
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-header">
+      <div class="detail-title" id="detailTitle">Inverter Detail</div>
+      <button class="close-btn" onclick="closeDetail()">✕ Close</button>
+    </div>
+    <div class="detail-grid" id="detailStats"></div>
+    <div class="strings-title" id="stringsTitle" style="display:none">String Currents</div>
+    <div class="strings-grid" id="stringsGrid"></div>
+  </div>
+
+  <div class="status-bar">
+    🕐 <span id="statusText">Connecting...</span>
+    <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
+  </div>
 </div>
 
 <script>
-
 const API_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnTcBrJaxl83YOmurro5F9b7KxU3n471rFtPF4d9xWBsMqG1Z9OGJPWJhncv7dqMCfAWTEtYOHVEuAI42iaThCc4TS3Tbuq5tGfG2lkAa5XKVELLb3vcoN8zo5DN0IIGmAsF6sIVzQTlR7OOL9wIgEHotGZWjBgicE7Ilcf0-nZF-bMDhfhsy25lPwdpFYJkgrA6nuBnDRxwk4OZiGWond7o9vYDrTNogGV_H6yGZU9mP92z0GoxnlFNF12P0xPlUgZsBDxZTMIkzE5PSBiDhm_nZsg7OQ&lib=M-RzSCphjG_2CuoD0BzClFyT8B5DgJEAP";
 
+let latestData = {};
+let selectedInv = null;
+
 async function loadData() {
-    let res = await fetch(API_URL);
-    let data = await res.text();
-
-    let rows = data.trim().split("\n");
-    let headers = rows[0].split(",");
-
-    let json = rows.slice(1).map(row => {
-        let values = row.split(",");
-        let obj = {};
-        headers.forEach((h, i) => obj[h.trim()] = values[i]);
-        return obj;
+  document.getElementById('statusText').textContent = 'Updating...';
+  try {
+    const res = await fetch(API_URL);
+    const text = await res.text();
+    const rows = text.trim().split("\n");
+    const headers = rows[0].split(",").map(h => h.trim());
+    const json = rows.slice(1).map(row => {
+      const vals = row.split(",");
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = vals[i] ? vals[i].trim() : "");
+      return obj;
     });
-
     processData(json);
+  } catch(e) {
+    document.getElementById('inverterGrid').innerHTML = '<div class="error-msg">⚠️ Could not load data. Check connection.</div>';
+    document.getElementById('statusText').textContent = 'Connection error';
+    document.getElementById('liveDot').style.background = '#E24B4A';
+  }
 }
 
 function processData(data) {
+  const latest = {};
+  data.forEach(d => {
+    const inv = d.DeviceName;
+    if (!latest[inv] || d.Timestamp > latest[inv].Timestamp) latest[inv] = d;
+  });
+  latestData = latest;
 
-    let latest = {};
+  let totalKW = 0, totalDay = 0, activeCount = 0;
+  const invList = Object.values(latest);
 
-    data.forEach(d => {
-        let inv = d.DeviceName;
-        if (!latest[inv] || d.Timestamp > latest[inv].Timestamp) {
-            latest[inv] = d;
-        }
+  invList.forEach(d => {
+    const w = parseFloat(d.w) || 0;
+    const dkwh = parseFloat(d.dkwh) || 0;
+    totalKW += w / 1000;
+    totalDay += dkwh;
+    if (w > 0) activeCount++;
+  });
+
+  document.getElementById('totalKW').innerHTML = totalKW.toFixed(2) + '<span class="metric-unit">KW</span>';
+  document.getElementById('totalDay').innerHTML = totalDay.toFixed(2) + '<span class="metric-unit">kWh</span>';
+  document.getElementById('activeCount').textContent = activeCount + ' / ' + invList.length;
+
+  const now = new Date();
+  document.getElementById('lastUpdate').textContent = now.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  document.getElementById('liveDot').style.background = '#1D9E75';
+
+  renderInverters(invList);
+  if (selectedInv && latestData[selectedInv]) renderDetail(latestData[selectedInv]);
+
+  document.getElementById('statusText').textContent = 'Live · Auto-refresh every 6s';
+}
+
+function renderInverters(invList) {
+  const grid = document.getElementById('inverterGrid');
+  grid.innerHTML = '';
+  invList.forEach(d => {
+    const w = parseFloat(d.w) || 0;
+    const dkwh = parseFloat(d.dkwh) || 0;
+    const isOn = w > 0;
+    const pct = Math.min(100, (w / 1000 / 50) * 100);
+
+    const card = document.createElement('div');
+    card.className = 'inv-card' + (selectedInv === d.DeviceName ? ' active' : '');
+    card.onclick = () => selectInverter(d.DeviceName);
+    card.innerHTML = `
+      <div class="inv-name" title="${d.DeviceName}">${d.DeviceName}</div>
+      <span class="inv-badge ${isOn ? 'badge-on' : 'badge-off'}">${isOn ? 'Online' : 'Offline'}</span>
+      <div class="inv-row"><span class="inv-row-label">AC Power</span><span class="inv-row-val">${(w/1000).toFixed(2)} KW</span></div>
+      <div class="inv-row"><span class="inv-row-label">Day Gen</span><span class="inv-row-val">${dkwh.toFixed(2)} kWh</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct.toFixed(0)}%"></div></div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function selectInverter(name) {
+  selectedInv = selectedInv === name ? null : name;
+  document.querySelectorAll('.inv-card').forEach(c => {
+    c.className = 'inv-card';
+  });
+  if (selectedInv && latestData[selectedInv]) {
+    document.querySelectorAll('.inv-card').forEach(c => {
+      if (c.querySelector('.inv-name').title === selectedInv) c.classList.add('active');
     });
-
-    let totalW = 0;
-    let totalDkwh = 0;
-
-    let container = document.getElementById("inverters");
-    container.innerHTML = "";
-
-    Object.values(latest).forEach(d => {
-
-        let w = parseFloat(d.w) || 0;
-        let dkwh = parseFloat(d.dkwh) || 0;
-
-        totalW += w /1000;
-        totalDkwh += dkwh;
-
-        let table = `
-        <table>
-            <tr><th colspan="2">${d.DeviceName}</th></tr>
-            <tr><td>AC(KW)</td><td>${(w/1000).toFixed(2)}</td></tr>
-            <tr><td>Day Gen</td><td>${dkwh.toFixed(2)}</td></tr>
-            <tr><td>DC(KW)</td><td>${d.win/1000 || "-"}</td></tr>
-            <tr><td>Total Gen</td><td>${d.tkwh || "-"}</td></tr>
-        `;
-
-        for (let i = 1; i <= 24; i++) {
-            let S = "s" + i;
-        
-            if (d[S] !== undefined) {
-                let val = d[S];
-        
-                // 0 → "-"
-                if (val == 0 || val === "0" || val === "" || val === null) {
-                    val = "-";
-                }
-        
-                // 🔥 label change
-                let label = "String " + i;
-        
-                table += `<tr><td>${label}</td><td>${val}</td></tr>`;
-            }
-        }
-
-        table += "</table>";
-
-        let div = document.createElement("div");
-        div.className = "inv";
-
-        div.innerHTML = `
-            <h3>${d.DeviceName}</h3>
-            <p>⚡ ${(w/1000).toFixed(2)} KW</p>
-            <p>🔋 ${dkwh.toFixed(2)}</p>
-        `;
-
-        // CLICK → OPEN MODAL
-        div.onclick = () => openModal(table);
-
-        container.appendChild(div);
-    });
-
-    document.getElementById("totalW").innerText = totalW.toFixed(2);
-    document.getElementById("totalDkwh").innerText = totalDkwh.toFixed(2);
+    renderDetail(latestData[selectedInv]);
+    document.getElementById('detailPanel').classList.add('visible');
+    document.getElementById('detailPanel').scrollIntoView({behavior:'smooth', block:'nearest'});
+  } else {
+    document.getElementById('detailPanel').classList.remove('visible');
+  }
 }
 
-// MODAL FUNCTIONS
-function openModal(content) {
-    document.getElementById("modal").style.display = "flex";
-    document.getElementById("modalContent").innerHTML = content;
+function renderDetail(d) {
+  document.getElementById('detailTitle').textContent = d.DeviceName;
+  const w = parseFloat(d.w) || 0;
+  const dkwh = parseFloat(d.dkwh) || 0;
+  const win = parseFloat(d.win) || 0;
+  const tkwh = parseFloat(d.tkwh) || 0;
+  document.getElementById('detailStats').innerHTML = `
+    <div class="detail-stat"><div class="detail-stat-label">AC Power</div><div class="detail-stat-val">${(w/1000).toFixed(2)} KW</div></div>
+    <div class="detail-stat"><div class="detail-stat-label">DC Power</div><div class="detail-stat-val">${win > 0 ? (win/1000).toFixed(2)+' KW' : '—'}</div></div>
+    <div class="detail-stat"><div class="detail-stat-label">Today Gen</div><div class="detail-stat-val">${dkwh.toFixed(2)} kWh</div></div>
+    <div class="detail-stat"><div class="detail-stat-label">Total Gen</div><div class="detail-stat-val">${tkwh > 0 ? tkwh.toFixed(1)+' kWh' : '—'}</div></div>
+  `;
+  const strings = [];
+  for (let i = 1; i <= 24; i++) {
+    const key = 's' + i;
+    if (d[key] !== undefined && d[key] !== '' && d[key] !== '0' && d[key] !== null) {
+      strings.push({ label: 'S' + i, val: d[key] });
+    }
+  }
+  const sg = document.getElementById('stringsGrid');
+  const st = document.getElementById('stringsTitle');
+  if (strings.length > 0) {
+    st.style.display = 'block';
+    sg.innerHTML = strings.map(s => `<div class="string-item"><div class="string-label">${s.label}</div><div class="string-val">${s.val}</div></div>`).join('');
+  } else {
+    st.style.display = 'none';
+    sg.innerHTML = '';
+  }
 }
 
-function closeModal() {
-    document.getElementById("modal").style.display = "none";
+function closeDetail() {
+  selectedInv = null;
+  document.getElementById('detailPanel').classList.remove('visible');
+  document.querySelectorAll('.inv-card').forEach(c => c.classList.remove('active'));
 }
 
-// refresh every 6 sec
 loadData();
 setInterval(loadData, 6000);
-
 </script>
 
 </body>
