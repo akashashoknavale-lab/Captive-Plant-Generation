@@ -9,51 +9,77 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Arial,sans-serif;background:#0f172a;color:#f1f5f9;min-height:100vh}
-.wrap{padding:1.5rem;max-width:1300px;margin:0 auto}
+.wrap{padding:1.5rem;max-width:1400px;margin:0 auto}
+
+/* HEADER */
 .header{display:flex;align-items:center;gap:10px;margin-bottom:1.2rem}
 .live-dot{width:9px;height:9px;border-radius:50%;background:#1D9E75;animation:pulse 2s infinite;flex-shrink:0}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
 .title{font-size:16px;font-weight:600;color:#f1f5f9}
 .sub{font-size:11px;color:#94a3b8;margin-top:2px}
-.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.2rem}
+
+/* METRICS */
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.4rem}
 .mc{background:#1e293b;border-radius:10px;padding:.85rem 1rem}
 .ml{font-size:10px;color:#94a3b8;margin-bottom:5px}
 .mv{font-size:22px;font-weight:600;color:#f1f5f9}
 .mu{font-size:11px;color:#94a3b8;font-weight:400}
-.tabs{display:flex;gap:6px;margin-bottom:1rem}
-.tab{padding:6px 18px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid #334155;background:none;color:#94a3b8}
-.tab.active{background:#1e293b;color:#f1f5f9;font-weight:500;border-color:#475569}
-.section{display:none}
-.section.visible{display:block}
+
+/* MAIN LAYOUT — table left, graph right */
+.main-layout{display:grid;grid-template-columns:1fr 420px;gap:14px;align-items:start}
+@media(max-width:1000px){.main-layout{grid-template-columns:1fr}}
 
 /* TABLE */
-.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid #1e293b}
+.tbl-card{background:#1e293b;border-radius:12px;overflow:hidden}
+.tbl-header{padding:.8rem 1rem;font-size:12px;font-weight:500;color:#94a3b8;border-bottom:1px solid #334155}
+.tbl-wrap{overflow-y:auto;max-height:520px}
 table{width:100%;border-collapse:collapse;font-size:12px}
-th{background:#1e293b;color:#94a3b8;font-weight:500;font-size:11px;padding:8px 12px;text-align:left;border-bottom:1px solid #334155}
-td{padding:7px 12px;border-bottom:1px solid #1e293b;color:#f1f5f9;vertical-align:middle}
-tbody tr:hover td{background:#1e293b}
+th{background:#1e293b;color:#94a3b8;font-weight:500;font-size:11px;padding:7px 10px;text-align:left;border-bottom:1px solid #334155;position:sticky;top:0;z-index:1}
+td{padding:6px 10px;border-bottom:1px solid #0f172a;color:#f1f5f9;vertical-align:middle}
+tbody tr{cursor:pointer;transition:background 0.15s}
+tbody tr:hover td{background:#273449}
+tbody tr.selected td{background:#0f3d2e !important;border-left:2px solid #1D9E75}
 .badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px}
 .badge-on{background:#064e3b;color:#6ee7b7}
-.badge-off{background:#1e293b;color:#64748b}
-.bar-cell{display:flex;align-items:center;gap:7px}
-.mini-bar{height:5px;border-radius:3px;background:#1D9E75;min-width:2px}
-.site-tag{font-size:10px;color:#94a3b8;background:#1e293b;padding:2px 7px;border-radius:4px;border:1px solid #334155}
+.badge-off{background:#1e293b;color:#64748b;border:1px solid #334155}
+.bar-cell{display:flex;align-items:center;gap:6px}
+.mini-bar{height:4px;border-radius:2px;background:#1D9E75;min-width:2px}
+.site-tag{font-size:10px;color:#94a3b8;background:#0f172a;padding:2px 6px;border-radius:4px}
+
+/* RIGHT PANEL */
+.right-panel{display:flex;flex-direction:column;gap:14px}
 
 /* GRAPH */
-.graph-card{background:#1e293b;border-radius:12px;padding:1.2rem}
-.graph-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
-.graph-title{font-size:13px;font-weight:500;color:#f1f5f9}
-.graph-sub{font-size:11px;color:#94a3b8;margin-top:2px}
-.chart-container{position:relative;width:100%;height:320px}
-.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:1rem;padding-top:1rem;border-top:1px solid #334155}
+.graph-card{background:#1e293b;border-radius:12px;padding:1rem}
+.graph-title{font-size:12px;font-weight:500;color:#f1f5f9;margin-bottom:2px}
+.graph-sub{font-size:10px;color:#64748b;margin-bottom:.8rem}
+.chart-container{position:relative;width:100%;height:260px}
+.stat-row{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:.8rem;padding-top:.8rem;border-top:1px solid #334155}
 .stat-item{text-align:center}
-.stat-label{font-size:10px;color:#94a3b8;margin-bottom:3px}
-.stat-val{font-size:15px;font-weight:600;color:#f1f5f9}
+.stat-label{font-size:10px;color:#94a3b8;margin-bottom:2px}
+.stat-val{font-size:13px;font-weight:600;color:#f1f5f9}
 
+/* DETAIL PANEL */
+.detail-card{background:#1e293b;border-radius:12px;padding:1rem;display:none}
+.detail-card.visible{display:block}
+.detail-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem}
+.detail-name{font-size:14px;font-weight:600;color:#f1f5f9}
+.detail-close{background:none;border:1px solid #334155;border-radius:6px;padding:3px 9px;font-size:11px;color:#94a3b8;cursor:pointer}
+.detail-close:hover{background:#334155}
+.detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:.8rem}
+.dstat{background:#0f172a;border-radius:8px;padding:.5rem .7rem}
+.dstat-label{font-size:10px;color:#94a3b8;margin-bottom:2px}
+.dstat-val{font-size:15px;font-weight:600;color:#f1f5f9}
+.strings-title{font-size:11px;color:#94a3b8;margin-bottom:6px;margin-top:.6rem}
+.strings-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.str-item{background:#0f172a;border-radius:6px;padding:4px 6px;text-align:center}
+.str-label{font-size:9px;color:#64748b}
+.str-val{font-size:12px;font-weight:500;color:#f1f5f9}
+
+/* STATUS */
 .status-bar{display:flex;align-items:center;gap:8px;font-size:11px;color:#64748b;margin-top:1.2rem;padding-top:.9rem;border-top:1px solid #1e293b}
 .rbtn{margin-left:auto;background:none;border:1px solid #334155;border-radius:8px;padding:5px 12px;font-size:11px;color:#94a3b8;cursor:pointer}
 .rbtn:hover{background:#1e293b}
-.no-data{text-align:center;padding:3rem;color:#64748b;font-size:13px}
 </style>
 </head>
 <body>
@@ -62,8 +88,8 @@ tbody tr:hover td{background:#1e293b}
   <div class="header">
     <div class="live-dot" id="liveDot"></div>
     <div>
-      <div class="title">Malangdev Solar Monitor</div>
-      <div class="sub" id="subTitle">Pyramid Technoplast Ph1 &amp; Ph2 · Swati · Bhageria</div>
+      <div class="title">⚡ Malangdev Solar Monitor</div>
+      <div class="sub">Pyramid Technoplast Ph1 & Ph2 · Swati · Bhageria</div>
     </div>
   </div>
 
@@ -75,55 +101,60 @@ tbody tr:hover td{background:#1e293b}
     <div class="mc"><div class="ml">🕐 Last Update</div><div class="mv" style="font-size:13px;padding-top:5px" id="mTime">—</div></div>
   </div>
 
-  <div class="tabs">
-    <button class="tab active" onclick="switchTab('table',this)">All Inverters</button>
-    <button class="tab" onclick="switchTab('graph',this)">Power Graph</button>
-  </div>
+  <div class="main-layout">
 
-  <!-- TABLE TAB -->
-  <div class="section visible" id="sec-table">
-    <div class="tbl-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Device</th>
-            <th>Site</th>
-            <th>Status</th>
-            <th>AC Power (KW)</th>
-            <th>DC Power (KW)</th>
-            <th>Day Gen (kWh)</th>
-            <th>Total Gen (kWh)</th>
-            <th>Temp (°C)</th>
-            <th>PF</th>
-            <th>Freq (Hz)</th>
-          </tr>
-        </thead>
-        <tbody id="invTable">
-          <tr><td colspan="11" class="no-data">Loading...</td></tr>
-        </tbody>
-      </table>
+    <!-- LEFT: Inverter Table -->
+    <div class="tbl-card">
+      <div class="tbl-header">All Inverters — click any row to see details</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Device</th>
+              <th>Site</th>
+              <th>Status</th>
+              <th>AC Power (KW)</th>
+              <th>Day Gen (kWh)</th>
+              <th>Temp (°C)</th>
+            </tr>
+          </thead>
+          <tbody id="invTable">
+            <tr><td colspan="7" style="text-align:center;padding:2rem;color:#64748b">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
 
-  <!-- GRAPH TAB -->
-  <div class="section" id="sec-graph">
-    <div class="graph-card">
-      <div class="graph-hdr">
-        <div>
-          <div class="graph-title">Total Combined Power — All Inverters</div>
-          <div class="graph-sub">6:00 AM – 7:00 PM · Hover over graph to see values</div>
+    <!-- RIGHT: Graph + Detail -->
+    <div class="right-panel">
+
+      <!-- GRAPH -->
+      <div class="graph-card">
+        <div class="graph-title">Total Combined Power</div>
+        <div class="graph-sub">6:00 AM – 7:00 PM · Hover to see values</div>
+        <div class="chart-container">
+          <canvas id="powerChart" role="img" aria-label="Combined total power output chart">Combined power output</canvas>
+        </div>
+        <div class="stat-row">
+          <div class="stat-item"><div class="stat-label">Peak Power</div><div class="stat-val" id="gPeak">—</div></div>
+          <div class="stat-item"><div class="stat-label">Peak Time</div><div class="stat-val" id="gPeakTime">—</div></div>
+          <div class="stat-item"><div class="stat-label">Avg Power</div><div class="stat-val" id="gAvg">—</div></div>
+          <div class="stat-item"><div class="stat-label">Points</div><div class="stat-val" id="gPoints">—</div></div>
         </div>
       </div>
-      <div class="chart-container">
-        <canvas id="powerChart" role="img" aria-label="Line chart showing total combined power output of all inverters from 6 AM to 7 PM">Combined power output chart</canvas>
+
+      <!-- DETAIL PANEL (appears on click) -->
+      <div class="detail-card" id="detailCard">
+        <div class="detail-hdr">
+          <div class="detail-name" id="detailName">Inverter Detail</div>
+          <button class="detail-close" onclick="closeDetail()">✕ Close</button>
+        </div>
+        <div class="detail-grid" id="detailStats"></div>
+        <div class="strings-title" id="strTitle" style="display:none">String Currents</div>
+        <div class="strings-grid" id="strGrid"></div>
       </div>
-      <div class="stat-row">
-        <div class="stat-item"><div class="stat-label">Peak Power</div><div class="stat-val" id="gPeak">—</div></div>
-        <div class="stat-item"><div class="stat-label">Peak Time</div><div class="stat-val" id="gPeakTime">—</div></div>
-        <div class="stat-item"><div class="stat-label">Avg Power</div><div class="stat-val" id="gAvg">—</div></div>
-        <div class="stat-item"><div class="stat-label">Data Points</div><div class="stat-val" id="gPoints">—</div></div>
-      </div>
+
     </div>
   </div>
 
@@ -133,241 +164,205 @@ tbody tr:hover td{background:#1e293b}
   </div>
 
 </div>
-
 <script>
 const API_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnTcBrJaxl83YOmurro5F9b7KxU3n471rFtPF4d9xWBsMqG1Z9OGJPWJhncv7dqMCfAWTEtYOHVEuAI42iaThCc4TS3Tbuq5tGfG2lkAa5XKVELLb3vcoN8zo5DN0IIGmAsF6sIVzQTlR7OOL9wIgEHotGZWjBgicE7Ilcf0-nZF-bMDhfhsy25lPwdpFYJkgrA6nuBnDRxwk4OZiGWond7o9vYDrTNogGV_H6yGZU9mP92z0GoxnlFNF12P0xPlUgZsBDxZTMIkzE5PSBiDhm_nZsg7OQ&lib=M-RzSCphjG_2CuoD0BzClFyT8B5DgJEAP";
 
-// history: { "14:56": { totalKW: 123.4, count: 37 }, ... }
 let powerHistory = {};
 let chartInstance = null;
-let currentTab = 'table';
+let selectedInv = null;
+let latestData = {};
 
 const SITES = { PT_1:'Pyramid Ph1', PT_2:'Pyramid Ph2', Swati:'Swati', BIL:'Bhageria' };
+function getSiteGroup(n){ if(n.startsWith('PT_1'))return 'PT_1'; if(n.startsWith('PT_2'))return 'PT_2'; if(n.startsWith('Swati'))return 'Swati'; if(n.startsWith('BIL'))return 'BIL'; return 'Other'; }
 
-function getSiteGroup(name) {
-  if (name.startsWith('PT_1')) return 'PT_1';
-  if (name.startsWith('PT_2')) return 'PT_2';
-  if (name.startsWith('Swati')) return 'Swati';
-  if (name.startsWith('BIL')) return 'BIL';
-  return 'Other';
-}
-
-function switchTab(tab, el) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
-  el.classList.add('active');
-  document.getElementById('sec-' + tab).classList.add('visible');
-  currentTab = tab;
-  if (tab === 'graph') renderGraph();
-}
-
-async function loadData() {
-  document.getElementById('statusText').textContent = 'Updating...';
-  try {
-    const res = await fetch(API_URL);
-    const text = await res.text();
-    const rows = text.trim().split('\n');
-    const headers = rows[0].split(',').map(h => h.trim());
-    const json = rows.slice(1).map(row => {
-      const vals = row.split(',');
-      const obj = {};
-      headers.forEach((h, i) => obj[h] = vals[i] ? vals[i].trim() : '');
+async function loadData(){
+  document.getElementById('statusText').textContent='Updating...';
+  try{
+    const res=await fetch(API_URL);
+    const text=await res.text();
+    const rows=text.trim().split('\n');
+    const headers=rows[0].split(',').map(h=>h.trim());
+    const json=rows.slice(1).map(row=>{
+      const vals=row.split(','); const obj={};
+      headers.forEach((h,i)=>obj[h]=vals[i]?vals[i].trim():'');
       return obj;
     });
     processData(json);
-  } catch(e) {
-    document.getElementById('statusText').textContent = '⚠️ Connection error';
-    document.getElementById('liveDot').style.background = '#E24B4A';
+  }catch(e){
+    document.getElementById('statusText').textContent='⚠️ Connection error';
+    document.getElementById('liveDot').style.background='#E24B4A';
   }
 }
 
-function processData(data) {
-  // get latest record per device
-  const latest = {};
-  data.forEach(d => {
-    const inv = d.DeviceName;
-    if (!latest[inv] || d.Timestamp > latest[inv].Timestamp) latest[inv] = d;
+function processData(data){
+  const latest={};
+  data.forEach(d=>{
+    const inv=d.DeviceName;
+    if(!latest[inv]||d.Timestamp>latest[inv].Timestamp) latest[inv]=d;
+  });
+  latestData=latest;
+
+  const invList=Object.values(latest);
+  let totalKW=0,totalDay=0,activeCount=0,totalTemp=0,tempCount=0;
+  invList.forEach(d=>{
+    const w=parseFloat(d.w)||0, dkwh=parseFloat(d.dkwh)||0, temp=parseFloat(d.temp)||0;
+    totalKW+=w/1000; totalDay+=dkwh;
+    if(w>0)activeCount++;
+    if(temp>0){totalTemp+=temp;tempCount++;}
   });
 
-  const invList = Object.values(latest);
-  let totalKW = 0, totalDay = 0, activeCount = 0, totalTemp = 0, tempCount = 0;
-
-  invList.forEach(d => {
-    const w = parseFloat(d.w) || 0;
-    const dkwh = parseFloat(d.dkwh) || 0;
-    const temp = parseFloat(d.temp) || 0;
-    totalKW += w / 1000;
-    totalDay += dkwh;
-    if (w > 0) activeCount++;
-    if (temp > 0) { totalTemp += temp; tempCount++; }
-  });
-
-  // store power history point
-  const now = new Date();
-  const h = now.getHours(), m = now.getMinutes();
-  if (h >= 6 && h < 19) {
-    const timeKey = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
-    powerHistory[timeKey] = { totalKW: parseFloat(totalKW.toFixed(2)), count: invList.length };
+  // store history
+  const now=new Date(); const h=now.getHours(),m=now.getMinutes();
+  if(h>=6&&h<19){
+    const key=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+    powerHistory[key]={totalKW:parseFloat(totalKW.toFixed(2)),count:invList.length};
   }
 
-  // update metric cards
-  document.getElementById('mTotalKW').innerHTML = totalKW.toFixed(2) + '<span class="mu"> KW</span>';
-  document.getElementById('mTotalDay').innerHTML = totalDay.toFixed(1) + '<span class="mu"> kWh</span>';
-  document.getElementById('mActive').textContent = activeCount + ' / ' + invList.length;
-  document.getElementById('mTemp').innerHTML = (tempCount ? (totalTemp/tempCount).toFixed(1) : '—') + '<span class="mu"> °C</span>';
-  document.getElementById('liveDot').style.background = '#1D9E75';
-
-  const ts = new Date(invList[0]?.Timestamp || Date.now());
-  document.getElementById('mTime').textContent = ts.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-  document.getElementById('statusText').textContent = 'Live · Auto-refresh every 6s · ' + new Date().toLocaleTimeString('en-IN');
+  document.getElementById('mTotalKW').innerHTML=totalKW.toFixed(2)+'<span class="mu"> KW</span>';
+  document.getElementById('mTotalDay').innerHTML=totalDay.toFixed(1)+'<span class="mu"> kWh</span>';
+  document.getElementById('mActive').textContent=activeCount+' / '+invList.length;
+  document.getElementById('mTemp').innerHTML=(tempCount?(totalTemp/tempCount).toFixed(1):'—')+'<span class="mu"> °C</span>';
+  document.getElementById('liveDot').style.background='#1D9E75';
+  const ts=new Date(invList[0]?.Timestamp||Date.now());
+  document.getElementById('mTime').textContent=ts.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('statusText').textContent='Live · Auto-refresh 6s · '+new Date().toLocaleTimeString('en-IN');
 
   renderTable(invList);
-  if (currentTab === 'graph') renderGraph();
+  renderGraph();
+  if(selectedInv&&latestData[selectedInv]) renderDetail(latestData[selectedInv]);
 }
 
-function renderTable(invList) {
-  const tbody = document.getElementById('invTable');
-  const maxW = Math.max(...invList.map(d => parseFloat(d.w) || 0));
-
-  tbody.innerHTML = invList.map((d, i) => {
-    const w = parseFloat(d.w) || 0;
-    const win = parseFloat(d.win) || 0;
-    const dkwh = parseFloat(d.dkwh) || 0;
-    const tkwh = parseFloat(d.tkwh) || 0;
-    const temp = parseFloat(d.temp) || 0;
-    const pf = parseFloat(d.pf) || 0;
-    const f = parseFloat(d.f) || 0;
-    const isOn = w > 0;
-    const pct = maxW > 0 ? Math.round((w / maxW) * 58) : 0;
-    const grp = getSiteGroup(d.DeviceName);
-
-    return `<tr>
-      <td style="color:#64748b;font-size:11px">${i+1}</td>
+function renderTable(invList){
+  const tbody=document.getElementById('invTable');
+  const maxW=Math.max(...invList.map(d=>parseFloat(d.w)||0));
+  tbody.innerHTML=invList.map((d,i)=>{
+    const w=parseFloat(d.w)||0, dkwh=parseFloat(d.dkwh)||0, temp=parseFloat(d.temp)||0;
+    const isOn=w>0, pct=maxW>0?Math.round((w/maxW)*50):0;
+    const grp=getSiteGroup(d.DeviceName);
+    const isSel=selectedInv===d.DeviceName;
+    return `<tr class="${isSel?'selected':''}" onclick="selectInverter('${d.DeviceName}')">
+      <td style="color:#64748b;font-size:10px">${i+1}</td>
       <td style="font-weight:500">${d.DeviceName}</td>
-      <td><span class="site-tag">${SITES[grp] || grp}</span></td>
-      <td><span class="badge ${isOn ? 'badge-on' : 'badge-off'}">${isOn ? 'Online' : 'Offline'}</span></td>
-      <td>
-        <div class="bar-cell">
-          <div class="mini-bar" style="width:${pct}px"></div>
-          <span>${(w/1000).toFixed(2)}</span>
-        </div>
-      </td>
-      <td>${win > 0 ? (win/1000).toFixed(2) : '—'}</td>
+      <td><span class="site-tag">${SITES[grp]||grp}</span></td>
+      <td><span class="badge ${isOn?'badge-on':'badge-off'}">${isOn?'Online':'Offline'}</span></td>
+      <td><div class="bar-cell"><div class="mini-bar" style="width:${pct}px"></div><span>${(w/1000).toFixed(2)}</span></div></td>
       <td>${dkwh.toFixed(1)}</td>
-      <td>${tkwh > 0 ? tkwh.toFixed(0) : '—'}</td>
-      <td>${temp > 0 ? temp.toFixed(1) : '—'}</td>
-      <td>${pf > 0 ? pf.toFixed(3) : '—'}</td>
-      <td>${f > 0 ? f.toFixed(1) : '—'}</td>
+      <td>${temp>0?temp.toFixed(1):'—'}</td>
     </tr>`;
   }).join('');
 }
 
-function renderGraph() {
-  const keys = Object.keys(powerHistory).sort();
+function selectInverter(name){
+  if(selectedInv===name){ closeDetail(); return; }
+  selectedInv=name;
+  // highlight row
+  document.querySelectorAll('#invTable tr').forEach(r=>{
+    r.classList.toggle('selected', r.querySelector('td:nth-child(2)')?.textContent===name);
+  });
+  if(latestData[name]) renderDetail(latestData[name]);
+  document.getElementById('detailCard').classList.add('visible');
+}
 
-  if (keys.length === 0) {
-    if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
-    document.getElementById('powerChart').getContext('2d').clearRect(0, 0, 9999, 9999);
-    document.getElementById('gPeak').textContent = '—';
-    document.getElementById('gPeakTime').textContent = '—';
-    document.getElementById('gAvg').textContent = '—';
-    document.getElementById('gPoints').textContent = '0';
-    return;
+function closeDetail(){
+  selectedInv=null;
+  document.getElementById('detailCard').classList.remove('visible');
+  document.querySelectorAll('#invTable tr').forEach(r=>r.classList.remove('selected'));
+}
+
+function renderDetail(d){
+  document.getElementById('detailName').textContent='📟 '+d.DeviceName;
+  const w=parseFloat(d.w)||0, win=parseFloat(d.win)||0;
+  const dkwh=parseFloat(d.dkwh)||0, tkwh=parseFloat(d.tkwh)||0;
+  const temp=parseFloat(d.temp)||0, pf=parseFloat(d.pf)||0;
+  const f=parseFloat(d.f)||0, va=parseFloat(d.va)||0;
+  document.getElementById('detailStats').innerHTML=`
+    <div class="dstat"><div class="dstat-label">AC Power</div><div class="dstat-val">${(w/1000).toFixed(2)} KW</div></div>
+    <div class="dstat"><div class="dstat-label">DC Power</div><div class="dstat-val">${win>0?(win/1000).toFixed(2)+' KW':'—'}</div></div>
+    <div class="dstat"><div class="dstat-label">Today Gen</div><div class="dstat-val">${dkwh.toFixed(1)} kWh</div></div>
+    <div class="dstat"><div class="dstat-label">Total Gen</div><div class="dstat-val">${tkwh>0?tkwh.toFixed(0)+' kWh':'—'}</div></div>
+    <div class="dstat"><div class="dstat-label">Temperature</div><div class="dstat-val">${temp>0?temp.toFixed(1)+' °C':'—'}</div></div>
+    <div class="dstat"><div class="dstat-label">Power Factor</div><div class="dstat-val">${pf>0?pf.toFixed(3):'—'}</div></div>
+    <div class="dstat"><div class="dstat-label">Frequency</div><div class="dstat-val">${f>0?f.toFixed(1)+' Hz':'—'}</div></div>
+    <div class="dstat"><div class="dstat-label">Apparent Power</div><div class="dstat-val">${va>0?va.toFixed(0)+' VA':'—'}</div></div>
+  `;
+  // strings
+  const strings=[];
+  for(let i=1;i<=24;i++){
+    const key='s'+i, val=d[key];
+    if(val&&val!==''&&val!=='0'&&val!==null) strings.push({label:'S'+i,val});
   }
+  const sg=document.getElementById('strGrid'), st=document.getElementById('strTitle');
+  if(strings.length>0){
+    st.style.display='block';
+    sg.innerHTML=strings.map(s=>`<div class="str-item"><div class="str-label">${s.label}</div><div class="str-val">${s.val}</div></div>`).join('');
+  } else { st.style.display='none'; sg.innerHTML=''; }
+}
 
-  const values = keys.map(k => powerHistory[k].totalKW);
-  const peakVal = Math.max(...values);
-  const peakIdx = values.indexOf(peakVal);
-  const avgVal = values.reduce((a,b) => a+b, 0) / values.length;
+function renderGraph(){
+  const keys=Object.keys(powerHistory).sort();
+  if(keys.length===0){ document.getElementById('gPoints').textContent='0'; return; }
 
-  document.getElementById('gPeak').textContent = peakVal.toFixed(2) + ' KW';
-  document.getElementById('gPeakTime').textContent = keys[peakIdx];
-  document.getElementById('gAvg').textContent = avgVal.toFixed(2) + ' KW';
-  document.getElementById('gPoints').textContent = keys.length;
+  const values=keys.map(k=>powerHistory[k].totalKW);
+  const peakVal=Math.max(...values), peakIdx=values.indexOf(peakVal);
+  const avgVal=values.reduce((a,b)=>a+b,0)/values.length;
 
-  const chartData = {
-    labels: keys,
-    datasets: [{
-      label: 'Total Power (KW)',
-      data: values,
-      borderColor: '#1D9E75',
-      backgroundColor: 'rgba(29,158,117,0.12)',
-      borderWidth: 2.5,
-      pointRadius: 3,
-      pointHoverRadius: 7,
-      pointBackgroundColor: '#1D9E75',
-      pointHoverBackgroundColor: '#fff',
-      pointHoverBorderColor: '#1D9E75',
-      pointHoverBorderWidth: 2.5,
-      fill: true,
-      tension: 0.35
+  document.getElementById('gPeak').textContent=peakVal.toFixed(2)+' KW';
+  document.getElementById('gPeakTime').textContent=keys[peakIdx];
+  document.getElementById('gAvg').textContent=avgVal.toFixed(2)+' KW';
+  document.getElementById('gPoints').textContent=keys.length;
+
+  const chartData={
+    labels:keys,
+    datasets:[{
+      label:'Total Power (KW)',
+      data:values,
+      borderColor:'#1D9E75',
+      backgroundColor:'rgba(29,158,117,0.1)',
+      borderWidth:2.5,
+      pointRadius:3,
+      pointHoverRadius:7,
+      pointBackgroundColor:'#1D9E75',
+      pointHoverBackgroundColor:'#fff',
+      pointHoverBorderColor:'#1D9E75',
+      pointHoverBorderWidth:2.5,
+      fill:true,
+      tension:0.35
     }]
   };
 
-  const options = {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: {
-      mode: 'index',
-      intersect: false
-    },
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        enabled: true,
-        backgroundColor: '#0f172a',
-        titleColor: '#94a3b8',
-        bodyColor: '#f1f5f9',
-        borderColor: '#334155',
-        borderWidth: 1,
-        padding: 12,
-        displayColors: false,
-        callbacks: {
-          title: ctx => '🕐 Time: ' + ctx[0].label,
-          label: ctx => '⚡ Total Power: ' + ctx.parsed.y.toFixed(2) + ' KW',
-          afterLabel: ctx => {
-            const key = ctx.label;
-            const cnt = powerHistory[key]?.count || 0;
-            return '📟 Inverters: ' + cnt;
-          }
+  const opts={
+    responsive:true, maintainAspectRatio:false,
+    interaction:{mode:'index',intersect:false},
+    plugins:{
+      legend:{display:false},
+      tooltip:{
+        enabled:true,
+        backgroundColor:'#0f172a',
+        titleColor:'#94a3b8',
+        bodyColor:'#6ee7b7',
+        borderColor:'#334155',
+        borderWidth:1,
+        padding:12,
+        displayColors:false,
+        callbacks:{
+          title:ctx=>'🕐 '+ctx[0].label,
+          label:ctx=>'⚡ Total: '+ctx.parsed.y.toFixed(2)+' KW',
+          afterLabel:ctx=>'📟 Inverters: '+(powerHistory[ctx.label]?.count||0)
         }
       }
     },
-    scales: {
-      x: {
-        ticks: {
-          color: '#64748b',
-          font: { size: 10 },
-          maxRotation: 45,
-          autoSkip: true,
-          maxTicksLimit: 15
-        },
-        grid: { color: 'rgba(51,65,85,0.6)' }
-      },
-      y: {
-        title: { display: true, text: 'Total KW', color: '#64748b', font: { size: 11 } },
-        ticks: { color: '#64748b', font: { size: 10 } },
-        grid: { color: 'rgba(51,65,85,0.6)' },
-        beginAtZero: false
-      }
+    scales:{
+      x:{ticks:{color:'#64748b',font:{size:10},maxRotation:45,autoSkip:true,maxTicksLimit:14},grid:{color:'rgba(51,65,85,0.5)'}},
+      y:{title:{display:true,text:'KW',color:'#64748b',font:{size:11}},ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(51,65,85,0.5)'},beginAtZero:false}
     }
   };
 
-  if (chartInstance) {
-    chartInstance.data = chartData;
-    chartInstance.options = options;
-    chartInstance.update('none');
-  } else {
-    chartInstance = new Chart(document.getElementById('powerChart'), {
-      type: 'line',
-      data: chartData,
-      options: options
-    });
-  }
+  if(chartInstance){ chartInstance.data=chartData; chartInstance.options=opts; chartInstance.update('none'); }
+  else { chartInstance=new Chart(document.getElementById('powerChart'),{type:'line',data:chartData,options:opts}); }
 }
 
 loadData();
-setInterval(loadData, 6000);
+setInterval(loadData,6000);
 </script>
 </body>
 </html>
