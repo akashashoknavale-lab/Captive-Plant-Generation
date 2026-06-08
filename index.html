@@ -5,244 +5,369 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Malangdev Solar Dashboard</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: Arial, sans-serif; background: #0f172a; color: #f1f5f9; min-height: 100vh; }
-.dash { padding: 1.5rem 1rem; max-width: 1200px; margin: 0 auto; }
-.site-header { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; }
-.site-title { font-size: 15px; font-weight: 500; color: #f1f5f9; }
-.site-sub { font-size: 12px; color: #94a3b8; margin-top: 2px; }
-.live-dot { width: 8px; height: 8px; border-radius: 50%; background: #1D9E75; flex-shrink: 0; animation: pulse 2s infinite; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-.metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
-.metric-card { background: #1e293b; border-radius: 8px; padding: 0.9rem 1rem; }
-.metric-label { font-size: 11px; color: #94a3b8; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
-.metric-value { font-size: 22px; font-weight: 500; color: #f1f5f9; }
-.metric-unit { font-size: 12px; color: #94a3b8; font-weight: 400; margin-left: 2px; }
-.section-title { font-size: 13px; font-weight: 500; color: #94a3b8; margin-bottom: 10px; letter-spacing: 0.03em; }
-.inverter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
-.inv-card { background: #1e293b; border: 0.5px solid #334155; border-radius: 12px; padding: 0.9rem 1rem; cursor: pointer; transition: border-color 0.15s; }
-.inv-card:hover { border-color: #64748b; }
-.inv-card.active { border: 2px solid #1D9E75; }
-.inv-name { font-size: 13px; font-weight: 500; color: #f1f5f9; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.inv-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-.inv-row-label { font-size: 11px; color: #94a3b8; }
-.inv-row-val { font-size: 12px; font-weight: 500; color: #f1f5f9; }
-.inv-badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 20px; margin-bottom: 8px; }
-.badge-on { background: #EAF3DE; color: #3B6D11; }
-.badge-off { background: #334155; color: #94a3b8; }
-.detail-panel { background: #1e293b; border: 0.5px solid #334155; border-radius: 12px; padding: 1.2rem; display: none; margin-bottom: 1.5rem; }
-.detail-panel.visible { display: block; }
-.detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
-.detail-title { font-size: 15px; font-weight: 500; color: #f1f5f9; }
-.close-btn { background: none; border: 0.5px solid #64748b; border-radius: 8px; padding: 4px 10px; font-size: 12px; color: #94a3b8; cursor: pointer; }
-.detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-bottom: 1rem; }
-.detail-stat { background: #0f172a; border-radius: 8px; padding: 0.6rem 0.8rem; }
-.detail-stat-label { font-size: 10px; color: #94a3b8; margin-bottom: 3px; }
-.detail-stat-val { font-size: 16px; font-weight: 500; color: #f1f5f9; }
-.strings-title { font-size: 12px; color: #94a3b8; margin-bottom: 8px; }
-.strings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 6px; }
-.string-item { background: #0f172a; border-radius: 8px; padding: 5px 8px; text-align: center; }
-.string-label { font-size: 10px; color: #94a3b8; }
-.string-val { font-size: 13px; font-weight: 500; color: #f1f5f9; }
-.status-bar { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #94a3b8; margin-top: 1rem; padding-top: 1rem; border-top: 0.5px solid #334155; }
-.refresh-btn { margin-left: auto; background: none; border: 0.5px solid #64748b; border-radius: 8px; padding: 4px 10px; font-size: 11px; color: #94a3b8; cursor: pointer; display: flex; align-items: center; gap: 4px; }
-.progress-bar { background: #0f172a; border-radius: 4px; height: 4px; margin-top: 6px; overflow: hidden; }
-.progress-fill { height: 100%; border-radius: 4px; background: #1D9E75; transition: width 0.5s; }
-.error-msg { color: #E24B4A; font-size: 13px; padding: 1rem; text-align: center; }
-.loading-msg { color: #94a3b8; font-size: 13px; padding: 2rem; text-align: center; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#0f172a;color:#f1f5f9;min-height:100vh}
+.wrap{padding:1.5rem;max-width:1300px;margin:0 auto}
+.header{display:flex;align-items:center;gap:10px;margin-bottom:1.2rem}
+.live-dot{width:9px;height:9px;border-radius:50%;background:#1D9E75;animation:pulse 2s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.title{font-size:16px;font-weight:600;color:#f1f5f9}
+.sub{font-size:11px;color:#94a3b8;margin-top:2px}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:1.2rem}
+.mc{background:#1e293b;border-radius:10px;padding:.85rem 1rem}
+.ml{font-size:10px;color:#94a3b8;margin-bottom:5px}
+.mv{font-size:22px;font-weight:600;color:#f1f5f9}
+.mu{font-size:11px;color:#94a3b8;font-weight:400}
+.tabs{display:flex;gap:6px;margin-bottom:1rem}
+.tab{padding:6px 18px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid #334155;background:none;color:#94a3b8}
+.tab.active{background:#1e293b;color:#f1f5f9;font-weight:500;border-color:#475569}
+.section{display:none}
+.section.visible{display:block}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid #1e293b}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:#1e293b;color:#94a3b8;font-weight:500;font-size:11px;padding:8px 12px;text-align:left;border-bottom:1px solid #334155}
+td{padding:7px 12px;border-bottom:1px solid #1e293b;color:#f1f5f9;vertical-align:middle}
+tbody tr:hover td{background:#1e293b}
+.badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px}
+.badge-on{background:#064e3b;color:#6ee7b7}
+.badge-off{background:#1e293b;color:#64748b}
+.bar-cell{display:flex;align-items:center;gap:7px}
+.mini-bar{height:5px;border-radius:3px;background:#1D9E75;min-width:2px}
+.site-tag{font-size:10px;color:#94a3b8;background:#1e293b;padding:2px 7px;border-radius:4px;border:1px solid #334155}
+
+/* GRAPH */
+.graph-card{background:#1e293b;border-radius:12px;padding:1.2rem}
+.graph-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem}
+.graph-title{font-size:13px;font-weight:500;color:#f1f5f9}
+.graph-sub{font-size:11px;color:#94a3b8;margin-top:2px}
+.chart-container{position:relative;width:100%;height:320px}
+.stat-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin-top:1rem;padding-top:1rem;border-top:1px solid #334155}
+.stat-item{text-align:center}
+.stat-label{font-size:10px;color:#94a3b8;margin-bottom:3px}
+.stat-val{font-size:15px;font-weight:600;color:#f1f5f9}
+
+.status-bar{display:flex;align-items:center;gap:8px;font-size:11px;color:#64748b;margin-top:1.2rem;padding-top:.9rem;border-top:1px solid #1e293b}
+.rbtn{margin-left:auto;background:none;border:1px solid #334155;border-radius:8px;padding:5px 12px;font-size:11px;color:#94a3b8;cursor:pointer}
+.rbtn:hover{background:#1e293b}
+.no-data{text-align:center;padding:3rem;color:#64748b;font-size:13px}
 </style>
 </head>
 <body>
+<div class="wrap">
 
-<div class="dash">
-  <div class="site-header">
+  <div class="header">
     <div class="live-dot" id="liveDot"></div>
     <div>
-      <div class="site-title">Malangdev Sites — Solar Monitor</div>
-      <div class="site-sub">Pyramid Technoplast Ph1 &amp; Ph2 · Swati · Bhageria</div>
+      <div class="title">Malangdev Solar Monitor</div>
+      <div class="sub" id="subTitle">Pyramid Technoplast Ph1 &amp; Ph2 · Swati · Bhageria</div>
     </div>
   </div>
 
   <div class="metrics">
-    <div class="metric-card">
-      <div class="metric-label">⚡ Live Power</div>
-      <div class="metric-value" id="totalKW">—<span class="metric-unit">KW</span></div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">☀️ Today's Gen</div>
-      <div class="metric-value" id="totalDay">—<span class="metric-unit">kWh</span></div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">📊 Active Inverters</div>
-      <div class="metric-value" id="activeCount">—</div>
-    </div>
-    <div class="metric-card">
-      <div class="metric-label">🔄 Last Update</div>
-      <div class="metric-value" style="font-size:14px; padding-top:4px;" id="lastUpdate">—</div>
+    <div class="mc"><div class="ml">⚡ Total Power</div><div class="mv" id="mTotalKW">—<span class="mu"> KW</span></div></div>
+    <div class="mc"><div class="ml">☀️ Today's Gen</div><div class="mv" id="mTotalDay">—<span class="mu"> kWh</span></div></div>
+    <div class="mc"><div class="ml">📟 Online / Total</div><div class="mv" id="mActive">—</div></div>
+    <div class="mc"><div class="ml">🌡️ Avg Temp</div><div class="mv" id="mTemp">—<span class="mu"> °C</span></div></div>
+    <div class="mc"><div class="ml">🕐 Last Update</div><div class="mv" style="font-size:13px;padding-top:5px" id="mTime">—</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('table',this)">All Inverters</button>
+    <button class="tab" onclick="switchTab('graph',this)">Power Graph</button>
+  </div>
+
+  <!-- TABLE TAB -->
+  <div class="section visible" id="sec-table">
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Device</th>
+            <th>Site</th>
+            <th>Status</th>
+            <th>AC Power (KW)</th>
+            <th>DC Power (KW)</th>
+            <th>Day Gen (kWh)</th>
+            <th>Total Gen (kWh)</th>
+            <th>Temp (°C)</th>
+            <th>PF</th>
+            <th>Freq (Hz)</th>
+          </tr>
+        </thead>
+        <tbody id="invTable">
+          <tr><td colspan="11" class="no-data">Loading...</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
-  <div class="section-title">Inverters</div>
-  <div class="inverter-grid" id="inverterGrid">
-    <div class="loading-msg">Fetching live data...</div>
-  </div>
-
-  <div class="detail-panel" id="detailPanel">
-    <div class="detail-header">
-      <div class="detail-title" id="detailTitle">Inverter Detail</div>
-      <button class="close-btn" onclick="closeDetail()">✕ Close</button>
+  <!-- GRAPH TAB -->
+  <div class="section" id="sec-graph">
+    <div class="graph-card">
+      <div class="graph-hdr">
+        <div>
+          <div class="graph-title">Total Combined Power — All Inverters</div>
+          <div class="graph-sub">6:00 AM – 7:00 PM · Hover over graph to see values</div>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="powerChart" role="img" aria-label="Line chart showing total combined power output of all inverters from 6 AM to 7 PM">Combined power output chart</canvas>
+      </div>
+      <div class="stat-row">
+        <div class="stat-item"><div class="stat-label">Peak Power</div><div class="stat-val" id="gPeak">—</div></div>
+        <div class="stat-item"><div class="stat-label">Peak Time</div><div class="stat-val" id="gPeakTime">—</div></div>
+        <div class="stat-item"><div class="stat-label">Avg Power</div><div class="stat-val" id="gAvg">—</div></div>
+        <div class="stat-item"><div class="stat-label">Data Points</div><div class="stat-val" id="gPoints">—</div></div>
+      </div>
     </div>
-    <div class="detail-grid" id="detailStats"></div>
-    <div class="strings-title" id="stringsTitle" style="display:none">String Currents</div>
-    <div class="strings-grid" id="stringsGrid"></div>
   </div>
 
   <div class="status-bar">
-    🕐 <span id="statusText">Connecting...</span>
-    <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
+    <span id="statusText">Connecting...</span>
+    <button class="rbtn" onclick="loadData()">🔄 Refresh</button>
   </div>
+
 </div>
 
 <script>
 const API_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnTcBrJaxl83YOmurro5F9b7KxU3n471rFtPF4d9xWBsMqG1Z9OGJPWJhncv7dqMCfAWTEtYOHVEuAI42iaThCc4TS3Tbuq5tGfG2lkAa5XKVELLb3vcoN8zo5DN0IIGmAsF6sIVzQTlR7OOL9wIgEHotGZWjBgicE7Ilcf0-nZF-bMDhfhsy25lPwdpFYJkgrA6nuBnDRxwk4OZiGWond7o9vYDrTNogGV_H6yGZU9mP92z0GoxnlFNF12P0xPlUgZsBDxZTMIkzE5PSBiDhm_nZsg7OQ&lib=M-RzSCphjG_2CuoD0BzClFyT8B5DgJEAP";
 
-let latestData = {};
-let selectedInv = null;
+// history: { "14:56": { totalKW: 123.4, count: 37 }, ... }
+let powerHistory = {};
+let chartInstance = null;
+let currentTab = 'table';
+
+const SITES = { PT_1:'Pyramid Ph1', PT_2:'Pyramid Ph2', Swati:'Swati', BIL:'Bhageria' };
+
+function getSiteGroup(name) {
+  if (name.startsWith('PT_1')) return 'PT_1';
+  if (name.startsWith('PT_2')) return 'PT_2';
+  if (name.startsWith('Swati')) return 'Swati';
+  if (name.startsWith('BIL')) return 'BIL';
+  return 'Other';
+}
+
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+  el.classList.add('active');
+  document.getElementById('sec-' + tab).classList.add('visible');
+  currentTab = tab;
+  if (tab === 'graph') renderGraph();
+}
 
 async function loadData() {
   document.getElementById('statusText').textContent = 'Updating...';
   try {
     const res = await fetch(API_URL);
     const text = await res.text();
-    const rows = text.trim().split("\n");
-    const headers = rows[0].split(",").map(h => h.trim());
+    const rows = text.trim().split('\n');
+    const headers = rows[0].split(',').map(h => h.trim());
     const json = rows.slice(1).map(row => {
-      const vals = row.split(",");
+      const vals = row.split(',');
       const obj = {};
-      headers.forEach((h, i) => obj[h] = vals[i] ? vals[i].trim() : "");
+      headers.forEach((h, i) => obj[h] = vals[i] ? vals[i].trim() : '');
       return obj;
     });
     processData(json);
   } catch(e) {
-    document.getElementById('inverterGrid').innerHTML = '<div class="error-msg">⚠️ Could not load data. Check connection.</div>';
-    document.getElementById('statusText').textContent = 'Connection error';
+    document.getElementById('statusText').textContent = '⚠️ Connection error';
     document.getElementById('liveDot').style.background = '#E24B4A';
   }
 }
 
 function processData(data) {
+  // get latest record per device
   const latest = {};
   data.forEach(d => {
     const inv = d.DeviceName;
     if (!latest[inv] || d.Timestamp > latest[inv].Timestamp) latest[inv] = d;
   });
-  latestData = latest;
 
-  let totalKW = 0, totalDay = 0, activeCount = 0;
   const invList = Object.values(latest);
+  let totalKW = 0, totalDay = 0, activeCount = 0, totalTemp = 0, tempCount = 0;
 
   invList.forEach(d => {
     const w = parseFloat(d.w) || 0;
     const dkwh = parseFloat(d.dkwh) || 0;
+    const temp = parseFloat(d.temp) || 0;
     totalKW += w / 1000;
     totalDay += dkwh;
     if (w > 0) activeCount++;
+    if (temp > 0) { totalTemp += temp; tempCount++; }
   });
 
-  document.getElementById('totalKW').innerHTML = totalKW.toFixed(2) + '<span class="metric-unit">KW</span>';
-  document.getElementById('totalDay').innerHTML = totalDay.toFixed(2) + '<span class="metric-unit">kWh</span>';
-  document.getElementById('activeCount').textContent = activeCount + ' / ' + invList.length;
-
+  // store power history point
   const now = new Date();
-  document.getElementById('lastUpdate').textContent = now.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  const h = now.getHours(), m = now.getMinutes();
+  if (h >= 6 && h < 19) {
+    const timeKey = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+    powerHistory[timeKey] = { totalKW: parseFloat(totalKW.toFixed(2)), count: invList.length };
+  }
+
+  // update metric cards
+  document.getElementById('mTotalKW').innerHTML = totalKW.toFixed(2) + '<span class="mu"> KW</span>';
+  document.getElementById('mTotalDay').innerHTML = totalDay.toFixed(1) + '<span class="mu"> kWh</span>';
+  document.getElementById('mActive').textContent = activeCount + ' / ' + invList.length;
+  document.getElementById('mTemp').innerHTML = (tempCount ? (totalTemp/tempCount).toFixed(1) : '—') + '<span class="mu"> °C</span>';
   document.getElementById('liveDot').style.background = '#1D9E75';
 
-  renderInverters(invList);
-  if (selectedInv && latestData[selectedInv]) renderDetail(latestData[selectedInv]);
+  const ts = new Date(invList[0]?.Timestamp || Date.now());
+  document.getElementById('mTime').textContent = ts.toLocaleTimeString('en-IN', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  document.getElementById('statusText').textContent = 'Live · Auto-refresh every 6s · ' + new Date().toLocaleTimeString('en-IN');
 
-  document.getElementById('statusText').textContent = 'Live · Auto-refresh every 6s';
+  renderTable(invList);
+  if (currentTab === 'graph') renderGraph();
 }
 
-function renderInverters(invList) {
-  const grid = document.getElementById('inverterGrid');
-  grid.innerHTML = '';
-  invList.forEach(d => {
+function renderTable(invList) {
+  const tbody = document.getElementById('invTable');
+  const maxW = Math.max(...invList.map(d => parseFloat(d.w) || 0));
+
+  tbody.innerHTML = invList.map((d, i) => {
     const w = parseFloat(d.w) || 0;
+    const win = parseFloat(d.win) || 0;
     const dkwh = parseFloat(d.dkwh) || 0;
+    const tkwh = parseFloat(d.tkwh) || 0;
+    const temp = parseFloat(d.temp) || 0;
+    const pf = parseFloat(d.pf) || 0;
+    const f = parseFloat(d.f) || 0;
     const isOn = w > 0;
-    const pct = Math.min(100, (w / 1000 / 50) * 100);
+    const pct = maxW > 0 ? Math.round((w / maxW) * 58) : 0;
+    const grp = getSiteGroup(d.DeviceName);
 
-    const card = document.createElement('div');
-    card.className = 'inv-card' + (selectedInv === d.DeviceName ? ' active' : '');
-    card.onclick = () => selectInverter(d.DeviceName);
-    card.innerHTML = `
-      <div class="inv-name" title="${d.DeviceName}">${d.DeviceName}</div>
-      <span class="inv-badge ${isOn ? 'badge-on' : 'badge-off'}">${isOn ? 'Online' : 'Offline'}</span>
-      <div class="inv-row"><span class="inv-row-label">AC Power</span><span class="inv-row-val">${(w/1000).toFixed(2)} KW</span></div>
-      <div class="inv-row"><span class="inv-row-label">Day Gen</span><span class="inv-row-val">${dkwh.toFixed(2)} kWh</span></div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${pct.toFixed(0)}%"></div></div>
-    `;
-    grid.appendChild(card);
-  });
+    return `<tr>
+      <td style="color:#64748b;font-size:11px">${i+1}</td>
+      <td style="font-weight:500">${d.DeviceName}</td>
+      <td><span class="site-tag">${SITES[grp] || grp}</span></td>
+      <td><span class="badge ${isOn ? 'badge-on' : 'badge-off'}">${isOn ? 'Online' : 'Offline'}</span></td>
+      <td>
+        <div class="bar-cell">
+          <div class="mini-bar" style="width:${pct}px"></div>
+          <span>${(w/1000).toFixed(2)}</span>
+        </div>
+      </td>
+      <td>${win > 0 ? (win/1000).toFixed(2) : '—'}</td>
+      <td>${dkwh.toFixed(1)}</td>
+      <td>${tkwh > 0 ? tkwh.toFixed(0) : '—'}</td>
+      <td>${temp > 0 ? temp.toFixed(1) : '—'}</td>
+      <td>${pf > 0 ? pf.toFixed(3) : '—'}</td>
+      <td>${f > 0 ? f.toFixed(1) : '—'}</td>
+    </tr>`;
+  }).join('');
 }
 
-function selectInverter(name) {
-  selectedInv = selectedInv === name ? null : name;
-  document.querySelectorAll('.inv-card').forEach(c => {
-    c.className = 'inv-card';
-  });
-  if (selectedInv && latestData[selectedInv]) {
-    document.querySelectorAll('.inv-card').forEach(c => {
-      if (c.querySelector('.inv-name').title === selectedInv) c.classList.add('active');
-    });
-    renderDetail(latestData[selectedInv]);
-    document.getElementById('detailPanel').classList.add('visible');
-    document.getElementById('detailPanel').scrollIntoView({behavior:'smooth', block:'nearest'});
-  } else {
-    document.getElementById('detailPanel').classList.remove('visible');
+function renderGraph() {
+  const keys = Object.keys(powerHistory).sort();
+
+  if (keys.length === 0) {
+    if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+    document.getElementById('powerChart').getContext('2d').clearRect(0, 0, 9999, 9999);
+    document.getElementById('gPeak').textContent = '—';
+    document.getElementById('gPeakTime').textContent = '—';
+    document.getElementById('gAvg').textContent = '—';
+    document.getElementById('gPoints').textContent = '0';
+    return;
   }
-}
 
-function renderDetail(d) {
-  document.getElementById('detailTitle').textContent = d.DeviceName;
-  const w = parseFloat(d.w) || 0;
-  const dkwh = parseFloat(d.dkwh) || 0;
-  const win = parseFloat(d.win) || 0;
-  const tkwh = parseFloat(d.tkwh) || 0;
-  document.getElementById('detailStats').innerHTML = `
-    <div class="detail-stat"><div class="detail-stat-label">AC Power</div><div class="detail-stat-val">${(w/1000).toFixed(2)} KW</div></div>
-    <div class="detail-stat"><div class="detail-stat-label">DC Power</div><div class="detail-stat-val">${win > 0 ? (win/1000).toFixed(2)+' KW' : '—'}</div></div>
-    <div class="detail-stat"><div class="detail-stat-label">Today Gen</div><div class="detail-stat-val">${dkwh.toFixed(2)} kWh</div></div>
-    <div class="detail-stat"><div class="detail-stat-label">Total Gen</div><div class="detail-stat-val">${tkwh > 0 ? tkwh.toFixed(1)+' kWh' : '—'}</div></div>
-  `;
-  const strings = [];
-  for (let i = 1; i <= 24; i++) {
-    const key = 's' + i;
-    if (d[key] !== undefined && d[key] !== '' && d[key] !== '0' && d[key] !== null) {
-      strings.push({ label: 'S' + i, val: d[key] });
+  const values = keys.map(k => powerHistory[k].totalKW);
+  const peakVal = Math.max(...values);
+  const peakIdx = values.indexOf(peakVal);
+  const avgVal = values.reduce((a,b) => a+b, 0) / values.length;
+
+  document.getElementById('gPeak').textContent = peakVal.toFixed(2) + ' KW';
+  document.getElementById('gPeakTime').textContent = keys[peakIdx];
+  document.getElementById('gAvg').textContent = avgVal.toFixed(2) + ' KW';
+  document.getElementById('gPoints').textContent = keys.length;
+
+  const chartData = {
+    labels: keys,
+    datasets: [{
+      label: 'Total Power (KW)',
+      data: values,
+      borderColor: '#1D9E75',
+      backgroundColor: 'rgba(29,158,117,0.12)',
+      borderWidth: 2.5,
+      pointRadius: 3,
+      pointHoverRadius: 7,
+      pointBackgroundColor: '#1D9E75',
+      pointHoverBackgroundColor: '#fff',
+      pointHoverBorderColor: '#1D9E75',
+      pointHoverBorderWidth: 2.5,
+      fill: true,
+      tension: 0.35
+    }]
+  };
+
+  const options = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: 'index',
+      intersect: false
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        enabled: true,
+        backgroundColor: '#0f172a',
+        titleColor: '#94a3b8',
+        bodyColor: '#f1f5f9',
+        borderColor: '#334155',
+        borderWidth: 1,
+        padding: 12,
+        displayColors: false,
+        callbacks: {
+          title: ctx => '🕐 Time: ' + ctx[0].label,
+          label: ctx => '⚡ Total Power: ' + ctx.parsed.y.toFixed(2) + ' KW',
+          afterLabel: ctx => {
+            const key = ctx.label;
+            const cnt = powerHistory[key]?.count || 0;
+            return '📟 Inverters: ' + cnt;
+          }
+        }
+      }
+    },
+    scales: {
+      x: {
+        ticks: {
+          color: '#64748b',
+          font: { size: 10 },
+          maxRotation: 45,
+          autoSkip: true,
+          maxTicksLimit: 15
+        },
+        grid: { color: 'rgba(51,65,85,0.6)' }
+      },
+      y: {
+        title: { display: true, text: 'Total KW', color: '#64748b', font: { size: 11 } },
+        ticks: { color: '#64748b', font: { size: 10 } },
+        grid: { color: 'rgba(51,65,85,0.6)' },
+        beginAtZero: false
+      }
     }
-  }
-  const sg = document.getElementById('stringsGrid');
-  const st = document.getElementById('stringsTitle');
-  if (strings.length > 0) {
-    st.style.display = 'block';
-    sg.innerHTML = strings.map(s => `<div class="string-item"><div class="string-label">${s.label}</div><div class="string-val">${s.val}</div></div>`).join('');
-  } else {
-    st.style.display = 'none';
-    sg.innerHTML = '';
-  }
-}
+  };
 
-function closeDetail() {
-  selectedInv = null;
-  document.getElementById('detailPanel').classList.remove('visible');
-  document.querySelectorAll('.inv-card').forEach(c => c.classList.remove('active'));
+  if (chartInstance) {
+    chartInstance.data = chartData;
+    chartInstance.options = options;
+    chartInstance.update('none');
+  } else {
+    chartInstance = new Chart(document.getElementById('powerChart'), {
+      type: 'line',
+      data: chartData,
+      options: options
+    });
+  }
 }
 
 loadData();
 setInterval(loadData, 6000);
 </script>
-
 </body>
 </html>
